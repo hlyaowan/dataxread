@@ -1,0 +1,53 @@
+{
+  "access_token_validity" : "31536000",
+  "app_id" : "8e49b4f9ebc3e54121daeb154c1626f8",
+  "app_name" : "磅礴",
+  "app_secret" : "c347a9a91ab7ba976f59b3a9fab3e6dc",
+  "app_type" : "1",
+  "authorities" : "role_user",
+  "authorized_grant_types" : "authorization_code,refresh_token,client_credentials,implicit",
+  "channel_no" : "DAPB11",
+  "create_time" : "2013-07-16 18:11:00",
+  "developer_id" : "1",
+  "redirect_uri" : "http://wapread.189.cn",
+  "refresh_token_validity" : "36720000",
+  "resource_ids" : "openapi",
+  "scope" : "basic",
+  "status" : "1"
+}
+
+{
+  "access_token_validity" : "31536000",
+  "app_id" : "bfe279945c6109d067bcd295b5189d86",
+  "app_name" : "百度多酷",
+  "app_secret" : "cd30447e68143a2ae080130d631b1902",
+  "app_type" : "1",
+  "authorities" : "role_user",
+  "authorized_grant_types" : "authorization_code,refresh_token,client_credentials,implicit",
+  "channel_no" : "DAPB11",
+  "create_time" : "2013-07-16 18:11:00",
+  "developer_id" : "1",
+  "redirect_uri" : "http://wapread.189.cn",
+  "refresh_token_validity" : "36720000",
+  "resource_ids" : "openapi",
+  "scope" : "basic",
+  "status" : "1"
+}
+
+{
+  "access_token_validity" : "31536000",
+  "app_id" : "098f6bcd4621d373cade4e832627b4f6",
+  "app_name" : "技术测试",
+  "app_secret" : "ea23525aa9289e4504737f9a07c1080a",
+  "app_type" : "1",
+  "authorities" : "role_user",
+  "authorized_grant_types" : "authorization_code,refresh_token,client_credentials,implicit",
+  "channel_no" : "DACS11",
+  "create_time" : "2013-07-16 18:11:00",
+  "developer_id" : "1",
+  "redirect_uri" : "http://wapread.189.cn",
+  "refresh_token_validity" : "36720000",
+  "resource_ids" : "openapi",
+  "scope" : "basic",
+  "status" : "1"
+}
