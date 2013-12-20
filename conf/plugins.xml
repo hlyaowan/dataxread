@@ -1,5 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugins>
+<plugins><!-- xml不要换行 -->
+	<plugin>
+		<version>1</version>
+		<name>zhulangreader</name>
+		<type>reader</type>
+		<target>zhulang</target>
+		<jar>zhulangreader-1.0.0.jar</jar>
+		<class>com.taobao.datax.plugins.reader.zhulangreader.ZhulangReader</class>
+		<maxthreadnum>40</maxthreadnum>
+	</plugin>
+	<plugin>
+		<version>1</version>
+		<name>zhulangwriter</name>
+		<type>writer</type>
+		<target>zhulang</target>
+		<jar>zhulangwriter-1.0.0.jar</jar>
+		<class>com.taobao.datax.plugins.writer.zhulangwriter.ZhulangWriter	</class>
+		<maxthreadnum>40</maxthreadnum>
+	</plugin>
+	<plugin>
+		<version>1</version>
+		<name>hongxiureader</name>
+		<type>reader</type>
+		<target>hongxiu</target>
+		<jar>hongxiureader-1.0.0.jar</jar>
+		<class>com.taobao.datax.plugins.reader.hongxiureader.HongxiuReader	</class>
+		<maxthreadnum>40</maxthreadnum>
+	</plugin>
+	<plugin>
+		<version>1</version>
+		<name>hongxiuwriter</name>
+		<type>writer</type>
+		<target>hongxiu</target>
+		<jar>hongxiuwriter-1.0.0.jar</jar>
+		<class>com.taobao.datax.plugins.writer.hongxiuwriter.HongxiuWriter</class>
+		<maxthreadnum>40</maxthreadnum>
+	</plugin>
+	<plugin>
+		<version>1</version>
+		<name>netwayreader</name>
+		<type>reader</type>
+		<target>netway</target>
+		<jar>netwayreader-1.0.0.jar</jar>
+		<class>com.taobao.datax.plugins.reader.netwayreader.NetwayReader</class>
+		<maxthreadnum>40</maxthreadnum>
+	</plugin>
+	<plugin>
+		<version>1</version>
+		<name>netwaywriter</name>
+		<type>writer</type>
+		<target>netway</target>
+		<jar>netwaywriter-1.0.0.jar</jar>
+		<class>com.taobao.datax.plugins.writer.netwaywriter.NetwayWriter</class>
+		<maxthreadnum>40</maxthreadnum>
+	</plugin>
+	<plugin>
+		<version>1</version>
+		<name>guqiangreader</name>
+		<type>reader</type>
+		<target>guqiang</target>
+		<jar>guqiangreader-1.0.0.jar</jar>
+		<class>com.taobao.datax.plugins.reader.guqiangreader.GuqiangReader</class>
+		<maxthreadnum>40</maxthreadnum>
+	</plugin>
+	<plugin>
+		<version>1</version>
+		<name>guqiangwriter</name>
+		<type>writer</type>
+		<target>guqiang</target>
+		<jar>guqiangwriter-1.0.0.jar</jar>
+		<class>com.taobao.datax.plugins.writer.guqiangwriter.GuqiangWriter</class>
+		<maxthreadnum>40</maxthreadnum>
+	</plugin>
 	<plugin>
 		<!-- the version of this plugin -->
 		<version>1</version>
@@ -16,7 +88,7 @@
 		<!-- max concurrency the plugin can support -->
 		<maxthreadnum>10</maxthreadnum>
 	</plugin>
-	
+
 	<plugin>
 		<version>1</version>
 		<name>oraclereader</name>
@@ -35,7 +107,7 @@
 		<class>com.taobao.datax.plugins.reader.streamreader.StreamReader</class>
 		<maxthreadnum>40</maxthreadnum>
 	</plugin>
-    
+
 	<plugin>
 		<version>1</version>
 		<name>httpreader</name>
@@ -64,8 +136,8 @@
 		<class>com.taobao.datax.plugins.reader.hdfsreader.HdfsReader</class>
 		<maxthreadnum>10</maxthreadnum>
 	</plugin>
-	
-   <plugin>
+
+	<plugin>
 		<version>1</version>
 		<name>fakereader</name>
 		<type>reader</type>
@@ -90,7 +162,7 @@
 		<type>writer</type>
 		<target>oracle</target>
 		<jar>oraclewriter-1.0.0.jar</jar>
-		<class>com.taobao.datax.plugins.writer.oraclewriter.OracleWriter</class>
+		<class>com.taobao.datax.plugins.writer.oraclewriter.OracleWriter	</class>
 		<maxthreadnum>40</maxthreadnum>
 	</plugin>
 	<plugin>
@@ -111,25 +183,25 @@
 		<class>com.taobao.datax.plugins.writer.streamwriter.StreamWriter</class>
 		<maxthreadnum>10</maxthreadnum>
 	</plugin>
-    <plugin>
-            <version>1</version>
-            <name>hbasewriter</name>
-            <type>writer</type>
-            <target>hbase</target>
-            <jar>hbasewriter-1.0.0.jar</jar>
-            <class>com.taobao.datax.plugins.writer.hbasewriter.HBaseWriter</class>
-            <maxthreadnum>10</maxthreadnum>
-    </plugin>
-    <plugin>
-            <version>1</version>
-            <name>hbasereader</name>
-            <type>reader</type>
-            <target>hbase</target>
-            <jar>hbasereader-1.0.0.jar</jar>
-            <class>com.taobao.datax.plugins.reader.hbasereader.HBaseReader</class>
-            <maxthreadnum>10</maxthreadnum>
-    </plugin>
-    <plugin>
+	<plugin>
+		<version>1</version>
+		<name>hbasewriter</name>
+		<type>writer</type>
+		<target>hbase</target>
+		<jar>hbasewriter-1.0.0.jar</jar>
+		<class>com.taobao.datax.plugins.writer.hbasewriter.HBaseWriter</class>
+		<maxthreadnum>10</maxthreadnum>
+	</plugin>
+	<plugin>
+		<version>1</version>
+		<name>hbasereader</name>
+		<type>reader</type>
+		<target>hbase</target>
+		<jar>hbasereader-1.0.0.jar</jar>
+		<class>com.taobao.datax.plugins.reader.hbasereader.HBaseReader</class>
+		<maxthreadnum>10</maxthreadnum>
+	</plugin>
+	<plugin>
 		<version>1</version>
 		<name>panguwriter</name>
 		<type>writer</type>
