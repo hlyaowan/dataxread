@@ -41,9 +41,9 @@
 		<mkdir dir="${engine.dir}" />
 		<mkdir dir="${plugins.dir}" />
 	</target>
-			
+
 	<target name="compile" depends="prepare">
-		<javac srcdir="${src.dir}" destdir="${classes.dir}" debug="true" deprecation="true" includeantruntime="on" >
+		<javac srcdir="${src.dir}" destdir="${classes.dir}" debug="true" deprecation="true" includeantruntime="on">
 			<classpath refid="compile.classpath" />
 		</javac>
 	</target>
@@ -75,19 +75,25 @@
 
 
 	<target name="enginedist" depends="clean,compile">
-		<jar jarfile="${engine.dir}/engine-${engine.version}.jar" basedir="${classes.dir}" includes="com/taobao/datax/engine/**/*.class" >
+		<jar jarfile="${engine.dir}/engine-${engine.version}.jar" basedir="${classes.dir}" includes="com/taobao/datax/engine/**/*.class">
 			<manifest>
 				<attribute name="main-class" value="com.taobao.datax.engine.schedule.Engine" />
 			</manifest>
 		</jar>
 	</target>
 
-    <target name="commondist" depends="clean,compile">
+	<target name="commondist" depends="clean,compile">
 		<jar jarfile="${common.dir}/common-${common.version}.jar" basedir="${classes.dir}" includes="com/taobao/datax/common/**/*.class" />
 	</target>
 
-    <target name="plugincommondist" depends="clean,compile">
+	<target name="plugincommondist" depends="clean,compile">
 		<jar jarfile="${plugins.dir}/plugins-common-${common.version}.jar" basedir="${classes.dir}" includes="com/taobao/datax/plugins/common/*.class" />
+	</target>
+	<target name="pluginhttpcommondist" depends="clean,compile">
+		<jar jarfile="${plugins.dir}/plugins-common-http-${common.version}.jar" basedir="${classes.dir}" includes="com/taobao/datax/common/http/*.class" />
+	</target>
+	<target name="pluginoauthcommondist" depends="clean,compile">
+		<jar jarfile="${plugins.dir}/plugins-common-oauth-${common.version}.jar" basedir="${classes.dir}" includes="com/taobao/datax/common/oauth/*.class" />
 	</target>
 
 	<target name="eachplugindist">
@@ -102,7 +108,7 @@
 			<path id="plugins">
 				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/hdfswriter/1.0.0" />
 				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/oraclewriter/1.0.0" />
-				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/mysqlwriter/1.0.0" />				
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/mysqlwriter/1.0.0" />
 				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/hdfsreader/1.0.0" />
 				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/oraclereader/1.0.0" />
 				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/mysqlreader/1.0.0" />
@@ -113,10 +119,47 @@
 				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/streamreader/1.0.0" />
 				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/fakereader/1.0.0" />
 				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/sqlserverreader/1.0.0" />
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/zhulangreader/1.0.0" />
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/zhulangwriter/1.0.0" />
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/hongxiureader/1.0.0" />
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/hongxiuwriter/1.0.0" />
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/netwayreader/1.0.0" />
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/netwaywriter/1.0.0" />
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/guqiangreader/1.0.0" />
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/guqiangwriter/1.0.0" />
 			</path>
 		</foreach>
 	</target>
-	
+
+	<target name="zhulangwriter" depends="clean,compile">
+		<foreach target="eachplugindist" param="var">
+			<path id="plugins">
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/zhulangwriter/1.0.0" />
+			</path>
+		</foreach>
+	</target>
+	<target name="hongxiuwriter" depends="clean,compile">
+		<foreach target="eachplugindist" param="var">
+			<path id="plugins">
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/hongxiuwriter/1.0.0" />
+			</path>
+		</foreach>
+	</target>
+	<target name="netwaywriter" depends="clean,compile">
+		<foreach target="eachplugindist" param="var">
+			<path id="plugins">
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/netwaywriter/1.0.0" />
+			</path>
+		</foreach>
+	</target>
+	<target name="guqiangwriter" depends="clean,compile">
+		<foreach target="eachplugindist" param="var">
+			<path id="plugins">
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/guqiangwriter/1.0.0" />
+			</path>
+		</foreach>
+	</target>
+
 	<target name="hdfswriter" depends="clean,compile">
 		<foreach target="eachplugindist" param="var">
 			<path id="plugins">
@@ -124,7 +167,7 @@
 			</path>
 		</foreach>
 	</target>
-	
+
 	<target name="streamwriter" depends="clean,compile">
 		<foreach target="eachplugindist" param="var">
 			<path id="plugins">
@@ -132,23 +175,51 @@
 			</path>
 		</foreach>
 	</target>
-	
+
 	<target name="hbasewriter" depends="clean,compile">
-			<foreach target="eachplugindist" param="var">
-				<path id="plugins">
-					<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/hbasewriter/1.0.0" />
-				</path>
-			</foreach>
-		</target>
-	
+		<foreach target="eachplugindist" param="var">
+			<path id="plugins">
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/writer/hbasewriter/1.0.0" />
+			</path>
+		</foreach>
+	</target>
+
+	<target name="zhulangreader" depends="clean,compile">
+		<foreach target="eachplugindist" param="var">
+			<path id="plugins">
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/zhulangreader/1.0.0" />
+			</path>
+		</foreach>
+	</target>
+	<target name="hongxiureader" depends="clean,compile">
+		<foreach target="eachplugindist" param="var">
+			<path id="plugins">
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/hongxiureader/1.0.0" />
+			</path>
+		</foreach>
+	</target>
+	<target name="netwayreader" depends="clean,compile">
+		<foreach target="eachplugindist" param="var">
+			<path id="plugins">
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/netwayreader/1.0.0" />
+			</path>
+		</foreach>
+	</target>
+	<target name="guqiangreader" depends="clean,compile">
+		<foreach target="eachplugindist" param="var">
+			<path id="plugins">
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/guqiangreader/1.0.0" />
+			</path>
+		</foreach>
+	</target>
 	<target name="hbasereader" depends="clean,compile">
-			<foreach target="eachplugindist" param="var">
-				<path id="plugins">
-					<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/hbasereader/1.0.0" />
-				</path>
-			</foreach>
-    </target>
-	
+		<foreach target="eachplugindist" param="var">
+			<path id="plugins">
+				<pathelement path="${classes.dir}/com/taobao/datax/plugins/reader/hbasereader/1.0.0" />
+			</path>
+		</foreach>
+	</target>
+
 	<target name="oraclewriter" depends="clean,compile">
 		<foreach target="eachplugindist" param="var">
 			<path id="plugins">
@@ -164,7 +235,7 @@
 			</path>
 		</foreach>
 	</target>
-	
+
 	<target name="hdfsreader" depends="clean,compile">
 		<foreach target="eachplugindist" param="var">
 			<path id="plugins">
@@ -172,7 +243,7 @@
 			</path>
 		</foreach>
 	</target>
-	
+
 	<target name="streamreader" depends="clean,compile">
 		<foreach target="eachplugindist" param="var">
 			<path id="plugins">
@@ -188,8 +259,8 @@
 			</path>
 		</foreach>
 	</target>
-		
-		
+
+
 	<target name="httpreader" depends="clean,compile">
 		<foreach target="eachplugindist" param="var">
 			<path id="plugins">
@@ -197,7 +268,7 @@
 			</path>
 		</foreach>
 	</target>
-	
+
 	<target name="oraclereader" depends="clean,compile">
 		<foreach target="eachplugindist" param="var">
 			<path id="plugins">
@@ -205,7 +276,7 @@
 			</path>
 		</foreach>
 	</target>
-	
+
 	<target name="mysqlreader" depends="clean,compile">
 		<foreach target="eachplugindist" param="var">
 			<path id="plugins">
@@ -213,7 +284,7 @@
 			</path>
 		</foreach>
 	</target>
-	
+
 	<target name="sqlserverreader" depends="clean,compile">
 		<foreach target="eachplugindist" param="var">
 			<path id="plugins">
@@ -222,11 +293,6 @@
 		</foreach>
 	</target>
 
-	<target name="dist" depends="clean, compile, enginedist, commondist, plugincommondist, plugindist">
+	<target name="dist" depends="clean, compile, enginedist, commondist, plugincommondist,pluginhttpcommondist,pluginoauthcommondist, plugindist">
 	</target>
 </project>
-
-
-
-
-
