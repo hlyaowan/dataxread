@@ -44,6 +44,17 @@ public abstract class DateUtils {
         }
         return null;
     }
+    
+    public static Timestamp parseDateNowTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date =new  Date();
+        try {
+            return new Timestamp(sdf.parse(sdf.format(date)).getTime());
+        } catch (ParseException e) {
+
+        }
+        return null;
+    }
 
     public static Date parseDate(String dataTime) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -86,7 +97,7 @@ public abstract class DateUtils {
     }
 
     public static void main(String[] args) {
-        System.out.println(getStringDate());
+        System.out.println(parseDateNowTime());
     }
 
 }
