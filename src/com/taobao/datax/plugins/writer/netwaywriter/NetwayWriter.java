@@ -304,7 +304,7 @@ public class NetwayWriter extends Writer {
                                 chapterInsertStmt.setTimestamp(9, DateUtils.parseDateNowTime());
                                 chapterInsertStmt.setInt(10, chapter.getChapterNum());
                                 if (StringUtils.isNotBlank(chapter.getIsVip())) {
-                                    chapterInsertStmt.setInt(11, Integer.parseInt(chapter.getIsVip()));
+                                    chapterInsertStmt.setInt(11, Integer.parseInt(chapter.getIsVip()));//0免费，1收费 ，网文（0：免费，1：收费）和我们一致无须转化
                                 } else {
                                     chapterInsertStmt.setInt(11, 0);
                                 }
