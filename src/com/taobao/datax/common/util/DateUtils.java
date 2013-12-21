@@ -79,6 +79,16 @@ public abstract class DateUtils {
         c.set(Calendar.MILLISECOND, 0);
         return c.getTimeInMillis() / 1000;
     }
+    
+    /**
+     * 取得下一天开始unix time
+     * 
+     * @return
+     */
+    public static long getCurrentUnixTime() {
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        return c.getTimeInMillis() / 1000;
+    }
 
     /**
      * 取得下一月开始unix time
@@ -97,7 +107,7 @@ public abstract class DateUtils {
     }
 
     public static void main(String[] args) {
-        System.out.println(parseDateNowTime());
+        System.out.println(getCurrentUnixTime()-3600 * 24 * 30);
     }
 
 }
