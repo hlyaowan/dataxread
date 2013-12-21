@@ -34,6 +34,7 @@ public class GuqiangWriter extends Writer {
     private static int                   WORDVALUE       = 0;
     private static String                VOLUMEID        = "";
     private static String                VOLUMENAME      = "";
+    private static int                   MAXCHAPTER      = 10000;
 
     static {
         encodingConfigs = new ArrayList<String>();
@@ -121,14 +122,14 @@ public class GuqiangWriter extends Writer {
             this.encoding = encodingMaps.get(this.encoding);
         }
 
-//         this.username = "root";
-//         this.password = "875154";
-//         this.host = "localhost";
-//         this.port = "3306";
-//         this.dbname = "cp_content";
-//         this.encoding = "utf-8";
-//         this.sourceUniqKey = DBSource.genKey(this.getClass(), host, port,
-//         dbname);
+        // this.username = "root";
+        // this.password = "875154";
+        // this.host = "localhost";
+        // this.port = "3306";
+        // this.dbname = "cp_content";
+        // this.encoding = "utf-8";
+        // this.sourceUniqKey = DBSource.genKey(this.getClass(), host, port,
+        // dbname);
 
         return PluginStatus.SUCCESS.value();
     }
@@ -191,7 +192,7 @@ public class GuqiangWriter extends Writer {
                 logger.info("guqiang writer starting");
                 if (line.getFieldNum() > 0) {
                     String contentXml = line.getField(0);
-                    List<BookList> bookLists = service.getGuqiangClientBookList(null,contentXml);
+                    List<BookList> bookLists = service.getGuqiangClientBookList(null, contentXml);
                     for (BookList book : bookLists) {
                         logger.info("guqiang writer line : " + book.getId());
                         GQcontentInfo gqContent = service.getContentInfo(String.valueOf(book.getId()));
@@ -206,12 +207,12 @@ public class GuqiangWriter extends Writer {
                             contentUpdateStmt.setString(3, gqContent.getDetail());
                             contentUpdateStmt.setString(4, gqContent.getImageMidPath());
                             contentUpdateStmt.setTimestamp(5, DateUtils.parseDateNowTime());
-                          //小说状态（0：连载1：完本）
-                            int flag=0;
-                            if(gqContent.getBookType()==0){
-                                flag=2;
-                            }else if(gqContent.getBookType()==1){
-                                flag=1;
+                            // 小说状态（0：连载1：完本）
+                            int flag = 0;
+                            if (gqContent.getBookType() == 0) {
+                                flag = 2;
+                            } else if (gqContent.getBookType() == 1) {
+                                flag = 1;
                             }
                             contentUpdateStmt.setInt(6, flag); // 是否连载数据库1完本，2连载
                             contentUpdateStmt.setInt(7, gqContent.getMaxFree()); // 最大章节
@@ -230,14 +231,14 @@ public class GuqiangWriter extends Writer {
                             contentInsertStmt.setString(6, gqContent.getDetail());
                             contentInsertStmt.setString(7, gqContent.getImageMidPath());
                             contentInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
-                          //小说状态（0：连载1：完本）
-                            int flag=0;
-                            if(gqContent.getBookType()==0){
-                                flag=2;
-                            }else if(gqContent.getBookType()==1){
-                                flag=1;
+                            // 小说状态（0：连载1：完本）
+                            int flag = 0;
+                            if (gqContent.getBookType() == 0) {
+                                flag = 2;
+                            } else if (gqContent.getBookType() == 1) {
+                                flag = 1;
                             }
-                            contentInsertStmt.setInt(9, flag);////数据库1完本，2连载
+                            contentInsertStmt.setInt(9, flag);// //数据库1完本，2连载
                             contentInsertStmt.setInt(10, gqContent.getMaxFree());
                             contentInsertStmt.setString(11, SOURCE_ID);
                             contentInsertStmt.execute();
@@ -252,7 +253,7 @@ public class GuqiangWriter extends Writer {
                         ResultSet chapterRs = chapterQueryStmt.executeQuery();
                         List<TYChapterInfo> existsChapterList = bindDataList(chapterRs, TYChapterInfo.class);// 现有数据库书籍章节内容
                         List<ChapterList> newChapterList = service.getGuqiangChapterList(String.valueOf(book.getId()),
-                                                                                         1000);// Cp最新章节内容
+                                                                                         MAXCHAPTER);// Cp最新章节内容
                         if (CollectionUtils.isNotEmpty(existsChapterList)) { // 有内容，需判断是否有更新
                             int existsChapterSize = existsChapterList.size();
                             int newChapterSize = newChapterList.size();
@@ -271,7 +272,7 @@ public class GuqiangWriter extends Writer {
                                         chapterInsertStmt.setTimestamp(9, DateUtils.parseDateNowTime());
                                         chapterInsertStmt.setInt(10, WORDVALUE);
                                         if (StringUtils.isNotBlank(cpchapter.getIsVip())) {
-                                            chapterInsertStmt.setInt(11, Integer.parseInt(cpchapter.getIsVip()));
+                                            chapterInsertStmt.setInt(11, Integer.parseInt(cpchapter.getIsVip()));//0免费，1收费，古羌和我们定义一致
                                         } else {
                                             chapterInsertStmt.setInt(11, 0);
                                         }
