@@ -346,7 +346,7 @@ public class HongxiuWriter extends Writer {
                                 chapterInsertStmt.setInt(10,
                                                          service.getChapterInfosCount(String.valueOf(hongxiuContentInfo.getBookId())));
                                 if (StringUtils.isNotBlank(chapter.getBookChapterisVip())) {
-                                    chapterInsertStmt.setInt(11, Integer.parseInt(chapter.getBookChapterisVip()));
+                                    chapterInsertStmt.setInt(11, Integer.parseInt(chapter.getBookChapterisVip())); //我们0免费，1收费 ；红袖那边 1位VIP 0为非vip一致的
                                 } else {
                                     chapterInsertStmt.setInt(11, 0);
                                 }
