@@ -1,8 +1,11 @@
 package com.taobao.datax.plugins.reader.guqiangreader;
 
-import org.apache.commons.lang.StringUtils;
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
 import org.apache.log4j.Logger;
-import com.taobao.datax.common.http.GuqiangHttpClient;
+
 import com.taobao.datax.common.plugin.Line;
 import com.taobao.datax.common.plugin.LineSender;
 import com.taobao.datax.common.plugin.PluginStatus;
@@ -10,7 +13,6 @@ import com.taobao.datax.common.plugin.Reader;
 
 public class GuqiangReader extends Reader {
 
-    private GuqiangHttpClient httpClient = new GuqiangHttpClient();
     private static Logger     logger     = Logger.getLogger(GuqiangReader.class);
 
     @Override
@@ -27,15 +29,18 @@ public class GuqiangReader extends Reader {
     public int startRead(LineSender sender) {
         logger.info("begin startLoad GuqiangReader");
         int ret = PluginStatus.SUCCESS.value();
-        // 循环执行
-        while (true) {
-            // 获取书库内容
-            String xmlcontent = httpClient.getGuqiangClientBookList("", "", null);
-            if (StringUtils.isBlank(xmlcontent)) break;
-            Line line = sender.createLine();
-            line.addField(xmlcontent);
-            sender.sendToWriter(line);
+        //不涉及分页
+        List<BookList> contentList = ReadUtils.getGuqiangtBookList();
+        for (BookList bookList : contentList) {
+            if (bookList != null) {
+                JSONObject content = JSONObject.fromObject(bookList);
+                Line line = sender.createLine();
+                line.addField(content.toString());
+                sender.sendToWriter(line);
+                sender.flush();
+            }
         }
+        logger.info("============begin read guqiang data==========list:"+contentList.size());
         return ret;
     }
 
@@ -45,7 +50,13 @@ public class GuqiangReader extends Reader {
     }
 
     public static void main(String[] args) {
-        GuqiangReader reader = new GuqiangReader();
-        reader.startRead(null);
+        List<BookList> contentList = ReadUtils.getGuqiangtBookList();
+
+        for (BookList bookList : contentList) {
+            if (bookList != null) {
+                JSONObject content = JSONObject.fromObject(bookList);
+                System.out.println((content.toString()));
+            }
+        }
     }
 }
