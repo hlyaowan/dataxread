@@ -1,9 +1,8 @@
 package com.taobao.datax.plugins.reader.hongxiureader;
 
-import org.apache.commons.lang.StringUtils;
+import java.util.List;
+import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
-
-import com.taobao.datax.common.http.HongxiuHttpClient;
 import com.taobao.datax.common.plugin.Line;
 import com.taobao.datax.common.plugin.LineSender;
 import com.taobao.datax.common.plugin.PluginStatus;
@@ -12,9 +11,6 @@ import com.taobao.datax.common.plugin.Reader;
 
 public class HongxiuReader extends Reader {
     private static Logger logger = Logger.getLogger(HongxiuReader.class);
-
-    private HongxiuHttpClient httpClient = new HongxiuHttpClient();
-
 
     @Override
     public int init() {
@@ -32,15 +28,19 @@ public class HongxiuReader extends Reader {
     public int startRead(LineSender sender) {
         logger.info("begin startLoad HongxiuReader");
         int ret = PluginStatus.SUCCESS.value();
-        //循环执行
-        while (true) {
-            //获取书库内容
-            String  contentxml = httpClient.getHongxiuClientBookList();
-            if (StringUtils.isBlank(contentxml)) break;
-            Line line = sender.createLine();
-            line.addField(contentxml);
-            sender.sendToWriter(line);
+        //不涉及分页
+        List<HongxiuContentInfo> contentList = HongxiuUtils.getHongxiuBookList();
+        for (HongxiuContentInfo bookInfo : contentList) {
+            if (bookInfo != null) {
+                JSONObject content = JSONObject.fromObject(bookInfo);
+                Line line = sender.createLine();
+                line.addField(content.toString());
+                sender.sendToWriter(line);
+                sender.flush();
+                System.out.println("send json data============="+content.toString());
+            }
         }
+        System.out.println("send data============条数"+contentList.size());
         return ret;
     }
 
@@ -52,7 +52,12 @@ public class HongxiuReader extends Reader {
 
 
     public static void main(String[] args) {
-        HongxiuReader reader = new HongxiuReader();
-        reader.startRead(null);
+        List<HongxiuContentInfo> contentList = HongxiuUtils.getHongxiuBookList();
+        for (HongxiuContentInfo bookInfo : contentList) {
+            if (bookInfo != null) {
+                JSONObject content = JSONObject.fromObject(bookInfo);
+                System.out.println(content.toString());
+            }
+        }
     }
 }
