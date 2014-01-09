@@ -321,7 +321,7 @@ public class ZhulangWriter extends Writer {
                         }
 
                     } else { // 第一次抓取
-
+                        logger.info("guqiang first collection content info");
                         int order = 1;
                         for (Map<String, String> chapter : newChapterList) {
 
@@ -350,10 +350,40 @@ public class ZhulangWriter extends Writer {
         } catch (Exception e) {
             e.printStackTrace();
 
-        } finally {
+        }  finally {
             if (contentQueryStmt != null) {
                 try {
                     contentQueryStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (contentUpdateStmt != null) {
+                try {
+                    contentUpdateStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (contentInsertStmt != null) {
+                try {
+                    contentInsertStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (chapterQueryStmt != null) {
+                try {
+                    chapterQueryStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (chapterInsertStmt != null) {
+                try {
+                    chapterInsertStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (chapterUpdateStmt != null) {
+                try {
+                    chapterUpdateStmt.close();
                 } catch (SQLException ignore) {
                 }
             }
