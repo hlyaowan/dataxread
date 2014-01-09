@@ -11,23 +11,24 @@ public class GuqiangHttpClient {
     public static final String BASE_URL ="http://hezuo.kanshu.cn/";
     public static final String BASE_URL2 ="http://hezuo2.kanshu.cn/";
     public static final String FLAG="0";
-    public static final int PAGE=1;
+    public static final String PAGE="1";
     public static final String PAGESIZE="10";
     public static final Logger LOGGER =Logger.getLogger(GuqiangHttpClient.class);
     private static HttpInvokeClient httpClient = new SyncHttpInvokeClient();
     /***
+     * 该接口分页参数无效，cp没有实现分页效果
      * 获取书库内容，catalogId非必须，有值取分类内容，无值取全部书库
      * @param catalogId
      * @return
      */
-    public String getGuqiangClientBookList(String catalogId,String pageSize,Integer page){
+    public String getGuqiangClientBookList(String catalogId,String pageSize,String page){
         if(StringUtils.isEmpty(catalogId)){
             catalogId=StringUtils.EMPTY;
         }
         if(StringUtils.isBlank(pageSize)){
             pageSize =PAGESIZE;
         }
-        if(page==null){
+        if(StringUtils.isBlank(page)){
             page =PAGE;
         }
         List<DefaultNameValuePair> params = new ArrayList<DefaultNameValuePair>();
@@ -40,13 +41,13 @@ public class GuqiangHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL2).append("offer/booklist.php");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(10000);
-        request.setSoTimeout(5000);
-        LOGGER.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOGGER.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOGGER.info("bookList:"+content);
+//        LOGGER.info("bookList:"+content);
         return content;
     }
     
@@ -68,13 +69,13 @@ public class GuqiangHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL).append("offer/checkUp.php");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(10000);
-        request.setSoTimeout(5000);
-        LOGGER.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOGGER.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOGGER.info("checkUpdateBookChapter:"+content);
+//        LOGGER.info("checkUpdateBookChapter:"+content);
         return content;
     }
     /***
@@ -96,13 +97,13 @@ public class GuqiangHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL2).append("offer/getchapterlist.php");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(10000);
-        request.setSoTimeout(5000);
-        LOGGER.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOGGER.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOGGER.info("getGuqiangClientChapterList:"+content);
+//        LOGGER.info("getGuqiangClientChapterList:"+content);
         return content;
     }
     
@@ -121,13 +122,13 @@ public class GuqiangHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL2).append("offer/bookinfo.php");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(10000);
-        request.setSoTimeout(5000);
-        LOGGER.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOGGER.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOGGER.info("getGuqiangClientBookInfo:"+content);
+//        LOGGER.info("getGuqiangClientBookInfo:"+content);
         return content;
     }
     /***
@@ -147,13 +148,13 @@ public class GuqiangHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL2).append("offer/getcontent.php");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(10000);
-        request.setSoTimeout(5000);
-        LOGGER.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOGGER.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOGGER.info("getGuqiangClientChapterInfo:"+content);
+//        LOGGER.info("getGuqiangClientChapterInfo:"+content);
         return content;
     }
     

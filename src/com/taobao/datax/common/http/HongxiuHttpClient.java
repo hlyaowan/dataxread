@@ -20,9 +20,9 @@ public class HongxiuHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL).append("dianxin/apidianxinallbook.aspx");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(10000);
-        request.setSoTimeout(5000);
-        LOG.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOG.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
@@ -45,13 +45,13 @@ public class HongxiuHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL).append("dianxin/apidianxinbookinfo.aspx");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(10000);
-        request.setSoTimeout(5000);
-        LOG.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOG.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOG.info("getHongxiuBookInfo"+content);
+//        LOG.info("getHongxiuBookInfo"+content);
         return content;
     }
     
@@ -71,13 +71,13 @@ public class HongxiuHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL).append("dianxin/apidianxinchapterlist.aspx");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(10000);
-        request.setSoTimeout(5000);
-        LOG.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOG.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOG.info("getHongxiuBookInfo"+content);
+//        LOG.info("getHongxiuBookInfo"+content);
         return content;
     }
     /***
@@ -100,13 +100,13 @@ public class HongxiuHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL).append("dianxin/apidianxincontent.aspx");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(4000);
-        request.setSoTimeout(2000);
-        LOG.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOG.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOG.info("getHongxiuChapterInfo"+content);
+//        LOG.info("getHongxiuChapterInfo"+content);
         return content;
     }
     private DefaultNameValuePair buildParam(String key, String value) {

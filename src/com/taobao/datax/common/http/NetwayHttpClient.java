@@ -34,10 +34,12 @@ public class NetwayHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL).append("mcp_shuku.php?a=get_book_list");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOG.info("message:"+content);
+//        LOG.info("message:"+content);
         return content;
     }
     
@@ -58,13 +60,13 @@ public class NetwayHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL).append("mcp_shuku.php?a=get_book_info");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(4000);
-        request.setSoTimeout(2000);
-        LOG.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOG.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOG.info("getBookInfo:"+content);
+//        LOG.info("getBookInfo:"+content);
         return content;
     }
     /***
@@ -82,15 +84,15 @@ public class NetwayHttpClient {
         params.add(buildParam("bookid",bookId));
         params.add(buildParam("sig",sig));
         StringBuilder base = new StringBuilder();
-        base.append(BASE_URL).append("mcp.php?a=get_text_list");
+        base.append(BASE_URL).append("mcp_shuku.php?a=get_text_list");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(4000);
-        request.setSoTimeout(2000);
-        LOG.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOG.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOG.info("getChapterList:"+content);
+//        LOG.info("getChapterList:"+content);
         return content;
     }
     
@@ -113,13 +115,13 @@ public class NetwayHttpClient {
         StringBuilder base = new StringBuilder();
         base.append(BASE_URL).append("mcp_shuku.php?a=get_text_info");
         HttpInvokeRequest request = new HttpInvokeRequest(base.toString(), "GET");
-        request.setConnTimeout(4000);
-        request.setSoTimeout(2000);
-        LOG.info(base.toString()+params);
+        request.setConnTimeout(20000);
+        request.setSoTimeout(20000);
+//        LOG.info(base.toString()+params);
         request.addParams(params);
         HttpInvokeResponse response = httpClient.invoke(request);
         String content = response.getContent();
-        LOG.info("getChapterContent:"+content);
+//        LOG.info("getChapterContent:"+content);
         return content;
     }
     
