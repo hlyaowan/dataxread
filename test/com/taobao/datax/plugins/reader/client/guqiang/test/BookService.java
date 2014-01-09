@@ -1,8 +1,11 @@
 package com.taobao.datax.plugins.reader.client.guqiang.test;
 
 
+import java.util.List;
+
 import org.junit.Test;
 
+import com.taobao.datax.plugins.reader.guqiangreader.BookList;
 import com.taobao.datax.plugins.writer.guqiangwriter.GuqiangContentService;
 
 
@@ -11,7 +14,8 @@ public class BookService {
     GuqiangContentService service =new GuqiangContentService();
     @Test
     public void getGuqiangClientBookList() {
-        service.getGuqiangClientBookList(1);
+        List<com.taobao.datax.plugins.writer.guqiangwriter.BookList> list = service.getGuqiangClientBookList(2);
+        System.out.println(list.size());
     }
     
     

@@ -11,7 +11,7 @@ public class BookTest {
     public void getGuqiangClientBookList() {
         String catalogId="";
         String pageSize="";
-        int page=100;
+        String page="100";
         client.getGuqiangClientBookList(catalogId, pageSize, page);
     }
     

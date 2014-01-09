@@ -16,7 +16,7 @@ public class ClientService {
     
     @Test
     public void getChapterInfoList() {
-        service.getChapterInfoList("193486");
+        service.getChapterInfoList("23899");
     }
     
     @Test
@@ -26,7 +26,7 @@ public class ClientService {
     
     @Test
     public void getChapterInfo() {
-        System.out.println(service.getChapterInfo("193486","1").getChapterContent());
+        System.out.println(service.getChapterInfo("77266","1251139").getChapterContent());
     }
     
 
