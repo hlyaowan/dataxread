@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import net.sf.json.JSONObject;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -31,7 +33,6 @@ import com.taobao.datax.plugins.writer.mysqlwriter.ParamKey;
 public class HongxiuWriter extends Writer {
 
     private static List<String>          encodingConfigs = null;
-    private static int                   WORDVALUE       = 0;
     private static String                VOLUMEID        = "";
     private static String                VOLUMENAME      = "";
     private static HongxiuContentService service         = new HongxiuContentService();
@@ -118,14 +119,14 @@ public class HongxiuWriter extends Writer {
             this.encoding = encodingMaps.get(this.encoding);
         }
 
-        // this.username = "root";
-        // this.password = "875154";
-        // this.host = "localhost";
-        // this.port = "3306";
-        // this.dbname = "cp_content";
-        // this.encoding = "utf-8";
-        // this.sourceUniqKey = DBSource.genKey(this.getClass(), host, port,
-        // dbname);
+//         this.username = "root";
+//         this.password = "875154";
+//         this.host = "localhost";
+//         this.port = "3306";
+//         this.dbname = "cp_content";
+//         this.encoding = "utf-8";
+//         this.sourceUniqKey = DBSource.genKey(this.getClass(), host, port,
+//         dbname);
 
         return PluginStatus.SUCCESS.value();
     }
@@ -184,179 +185,173 @@ public class HongxiuWriter extends Writer {
                                                                                                                                                  + "UPDATE_TIME=?, CHAPTER_SIZE =?,"
                                                                                                                                                  + "IS_FREE=? ,CONTENT = ? "
                                                                                                                                                  + " WHERE INNER_CHAPTER_ID=?");
-            if ((line = receiver.getFromReader()) != null) {
-                logger.info("hongxiu writer starting");
+           
+            System.out.println("start collection data==============");
+            while ((line = receiver.getFromReader()) != null) {
+                System.out.println("hongxiu writer starting..............line number:"+line.getFieldNum());
                 if (line.getFieldNum() > 0) {
-                    String contentXml = line.getField(0);
-                    List<HongxiuContentInfo> contentInfos = service.getHongxiuBookList(contentXml);
-                    // List<HongxiuContentInfo> contentInfos =service.getHongxiuBookList();
-                    for (HongxiuContentInfo hongxiuContentInfo : contentInfos) {
-                        logger.info("hongxiu writer line : " + hongxiuContentInfo.getBookId());
-                        contentQueryStmt.setString(1, String.valueOf(hongxiuContentInfo.getBookId()));
-                        ResultSet contentRs = contentQueryStmt.executeQuery();
-                        TYContentInfo content = bindData(contentRs, TYContentInfo.class);
-                        int innerContentId = 0; // 更新：原有ID，新增：自增长后的ID
-                        if (content != null && content.getInnerBookId() != null) { // 内容记录已存在，判断是否变更
-                            logger.info("update content info");
-                            contentUpdateStmt.setString(1, hongxiuContentInfo.getBookAuthor());
-                            contentUpdateStmt.setInt(2, hongxiuContentInfo.getBookWordsCount());
-                            contentUpdateStmt.setString(3, hongxiuContentInfo.getBookDescription());
-                            contentUpdateStmt.setString(4, hongxiuContentInfo.getImageUrl());
-                            contentUpdateStmt.setTimestamp(5,
-                                                           DateUtils.parseDateTime(hongxiuContentInfo.getBookCreatetime()));
-                          //书状态(1：已完成:0：连载中)
-                            int flag=0;
-                            if(hongxiuContentInfo.getBookfinishState()==0){
-                                flag=2;
-                            }else if(hongxiuContentInfo.getBookfinishState()==1){
-                                flag=1;
-                            }
-                            contentUpdateStmt.setInt(6, flag);
-                            contentUpdateStmt.setInt(7,
-                                                     service.getChapterInfosCount(String.valueOf(hongxiuContentInfo.getBookId())));
-                            contentUpdateStmt.setInt(8, hongxiuContentInfo.getBookId());
-                            contentUpdateStmt.executeUpdate();
-                            innerContentId = content.getInnerBookId();
-                        } else {// 内容记录不存在
-                            logger.info("create content info");
-                            // "INSERT INTO
-                            // CONTENT_INFO(OUT_BOOK_ID,CREATE_TIME,BOOK_NAME,AUTHOR_NAME,BOOK_SIZE,BOOK_INTRO,BOOK_COVER,LAST_CHAPTER_UPDATE_TIME,BOOK_FULLFLAG,CHAPTER_TOTAL,SOURCE_ID)VALUES(?,?,?,?,?,?,?,?,?,?,?)
-                            int totalcount = service.getChapterInfosCount(String.valueOf(hongxiuContentInfo.getBookId()));
-                            contentInsertStmt.setString(1, String.valueOf(hongxiuContentInfo.getBookId()));
-                            contentInsertStmt.setTimestamp(2,
-                                                           DateUtils.parseDateTime(hongxiuContentInfo.getBookCreatetime()));
-                            contentInsertStmt.setString(3, hongxiuContentInfo.getBookName());
-                            contentInsertStmt.setString(4, hongxiuContentInfo.getBookAuthor());
-                            contentInsertStmt.setInt(5, hongxiuContentInfo.getBookWordsCount());
-                            contentInsertStmt.setString(6, hongxiuContentInfo.getBookDescription());
-                            contentInsertStmt.setString(7, hongxiuContentInfo.getImageUrl());
-                            contentInsertStmt.setTimestamp(8,
-                                                           DateUtils.parseDateTime(hongxiuContentInfo.getBookCreatetime()));
-                            //书状态(1：已完成:0：连载中)
-                            int flag=0;
-                            if(hongxiuContentInfo.getBookfinishState()==0){
-                                flag=2;
-                            }else if(hongxiuContentInfo.getBookfinishState()==1){
-                                flag=1;
-                            }
-                            contentInsertStmt.setInt(9, flag);////数据库1完本，2连载
-                            contentInsertStmt.setInt(10, totalcount);
-                            contentInsertStmt.setString(11, SOURCE_ID);
-                            contentInsertStmt.execute();
-
-                            ResultSet generatedRs = contentInsertStmt.getGeneratedKeys();
-
-                            if (generatedRs.next()) innerContentId = generatedRs.getInt(1);
-                            logger.info("writered one line content,bk_id:" + hongxiuContentInfo.getBookId() + "  id : "
-                                        + innerContentId);
+                    String contentJson = line.getField(0);
+                    System.out.println("hongxiu writer line : " + contentJson);
+                    // String contentJson ="{\"bookAuthor\":\"穿游泳衣的小鱼\",\"bookCategory\":\"\",\"bookCpid\":\"\",\"bookCreatetime\":\"2013-11-6 15:33:23\",\"bookDescription\":\"看过某电影之后，突然发现\",\"bookId\":29247,\"bookKey\":\"\",\"bookName\":\"前妻的男人\",\"bookWordsCount\":3294439,\"bookfinishState\":0,\"bookisVip\":\"0\",\"imageUrl\":\"http://fm4.xs8xs8.cn/data/cover/9e/180605.jpg\"}";
+                    JSONObject json = JSONObject.fromObject(contentJson);
+                    contentQueryStmt.setString(1, json.getString("bookId"));
+                    ResultSet contentRs = contentQueryStmt.executeQuery();
+                   int chapterCount = service.getChapterInfosCount(json.getString("bookId"));
+                    TYContentInfo content = bindData(contentRs, TYContentInfo.class);
+                    int innerContentId = 0; // 更新：原有ID，新增：自增长后的ID
+                    if (content != null && content.getInnerBookId() != null) { // 内容记录已存在，判断是否变更
+                        logger.info("update content info");
+                        contentUpdateStmt.setString(1, json.getString("bookAuthor"));
+                        contentUpdateStmt.setInt(2, Integer.parseInt(json.getString("bookWordsCount")));
+                        contentUpdateStmt.setString(3, json.getString("bookDescription"));
+                        contentUpdateStmt.setString(4, json.getString("imageUrl"));
+                        contentUpdateStmt.setTimestamp(5, DateUtils.parseDateTime(json.getString("bookCreatetime")));
+                        // 书状态(1：已完成:0：连载中)
+                        int flag = 0;
+                        if (Integer.parseInt(json.getString("bookfinishState")) == 0) {
+                            flag = 2;
+                        } else if (Integer.parseInt(json.getString("bookfinishState")) == 1) {
+                            flag = 1;
                         }
+                        contentUpdateStmt.setInt(6, flag);
+                        contentUpdateStmt.setInt(7,chapterCount);
+                        contentUpdateStmt.setInt(8,  Integer.parseInt(json.getString("bookId")));
+                        contentUpdateStmt.executeUpdate();
+                        innerContentId = content.getInnerBookId();
+                    } else {// 内容记录不存在
+                        logger.info("create content info");
+                        // "INSERT INTO
+                        // CONTENT_INFO(OUT_BOOK_ID,CREATE_TIME,BOOK_NAME,AUTHOR_NAME,BOOK_SIZE,BOOK_INTRO,BOOK_COVER,LAST_CHAPTER_UPDATE_TIME,BOOK_FULLFLAG,CHAPTER_TOTAL,SOURCE_ID)VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                        contentInsertStmt.setString(1,  json.getString("bookId"));
+                        contentInsertStmt.setTimestamp(2,DateUtils.parseDateTime(json.getString("bookCreatetime")));
+                        contentInsertStmt.setString(3,json.getString("bookName"));
+                        contentInsertStmt.setString(4, json.getString("bookAuthor"));
+                        contentInsertStmt.setInt(5, Integer.parseInt(json.getString("bookWordsCount")));
+                        contentInsertStmt.setString(6, json.getString("bookDescription"));
+                        contentInsertStmt.setString(7, json.getString("imageUrl"));
+                        contentInsertStmt.setTimestamp(8, DateUtils.parseDateTime(json.getString("bookCreatetime")));
+                        // 书状态(1：已完成:0：连载中)
+                        int flag = 0;
+                        if (Integer.parseInt(json.getString("bookfinishState")) == 0) {
+                            flag = 2;
+                        } else if (Integer.parseInt(json.getString("bookfinishState")) == 1) {
+                            flag = 1;
+                        }
+                        contentInsertStmt.setInt(9, flag);// //数据库1完本，2连载
+                        contentInsertStmt.setInt(10, chapterCount);
+                        contentInsertStmt.setString(11, SOURCE_ID);
+                        contentInsertStmt.execute();
 
-                        chapterQueryStmt.setString(1, String.valueOf(hongxiuContentInfo.getBookId()));
-                        ResultSet chapterRs = chapterQueryStmt.executeQuery();
-                        List<TYChapterInfo> existsChapterList = bindDataList(chapterRs, TYChapterInfo.class);
-                        List<HongxiuChapterInfo> newChapterList = service.getChapterInfos(String.valueOf(hongxiuContentInfo.getBookId()));
-                        if (CollectionUtils.isNotEmpty(existsChapterList)) { // 有内容，需判断是否有更新
-                            int existsChapterSize = existsChapterList.size();
-                            int newChapterSize = newChapterList.size();
+                        ResultSet generatedRs = contentInsertStmt.getGeneratedKeys();
 
-                            if (newChapterSize >= existsChapterSize) { // 连载更新
+                        if (generatedRs.next()) innerContentId = generatedRs.getInt(1);
+                        logger.info("writered one line content,bk_id:" + json.getString("bookId")+ "  id : "
+                                    + innerContentId);
+                    }
 
-                                for (int i = 0; i < newChapterSize; i++) {
-                                    HongxiuChapterInfo newchapter = newChapterList.get(i);
-                                    String chapterTxt = service.getChapterInfo(String.valueOf(hongxiuContentInfo.getBookId()),
-                                                                               newchapter.getBookChapterId()).getBookChapterTxt();
-                                    if (i + 1 > existsChapterSize) { // 新增章节
-                                        chapterInsertStmt.setString(1, newchapter.getBookChapterId());
-                                        chapterInsertStmt.setString(2, String.valueOf(hongxiuContentInfo.getBookId()));
-                                        chapterInsertStmt.setInt(3, innerContentId);
-                                        chapterInsertStmt.setInt(4, i + 1);
-                                        chapterInsertStmt.setString(5, VOLUMENAME);
-                                        chapterInsertStmt.setString(6, VOLUMEID);
-                                        chapterInsertStmt.setString(7, newchapter.getBookChapterName());
-                                        chapterInsertStmt.setTimestamp(8,
-                                                                       DateUtils.parseDateTime(newchapter.getBookChapterDate()));
-                                        chapterInsertStmt.setTimestamp(9,
-                                                                       DateUtils.parseDateTime(newchapter.getBookChapterDate()));
-                                        chapterInsertStmt.setInt(10, hongxiuContentInfo.getBookWordsCount());
-                                        if (StringUtils.isNotBlank(newchapter.getBookChapterisVip())) {
-                                            chapterInsertStmt.setInt(11,
-                                                                     Integer.parseInt(newchapter.getBookChapterisVip()));
-                                        } else {
-                                            chapterInsertStmt.setInt(11, 0);
-                                        }
-                                        chapterInsertStmt.setString(12, chapterTxt);
-                                        chapterInsertStmt.setString(13, SOURCE_ID);
-                                        chapterInsertStmt.execute();
+                    chapterQueryStmt.setString(1, json.getString("bookId"));
+                    ResultSet chapterRs = chapterQueryStmt.executeQuery();
+                    List<TYChapterInfo> existsChapterList = bindDataList(chapterRs, TYChapterInfo.class);
+                    List<HongxiuChapterInfo> newChapterList = service.getChapterInfos(json.getString("bookId"));
+                    if (CollectionUtils.isNotEmpty(existsChapterList)) { // 有内容，需判断是否有更新
+                        int existsChapterSize = existsChapterList.size();
+                        int newChapterSize = newChapterList.size();
 
+                        if (newChapterSize >= existsChapterSize) { // 连载更新
+
+                            for (int i = 0; i < newChapterSize; i++) {
+                                HongxiuChapterInfo newchapter = newChapterList.get(i);
+                                String chapterTxt = service.getChapterInfo(json.getString("bookId"),newchapter.getBookChapterId()).getBookChapterTxt();
+                                if (i + 1 > existsChapterSize) { // 新增章节
+                                    chapterInsertStmt.setString(1, newchapter.getBookChapterId());
+                                    chapterInsertStmt.setString(2, json.getString("bookId"));
+                                    chapterInsertStmt.setInt(3, innerContentId);
+                                    chapterInsertStmt.setInt(4, i + 1);
+                                    chapterInsertStmt.setString(5, VOLUMENAME);
+                                    chapterInsertStmt.setString(6, VOLUMEID);
+                                    chapterInsertStmt.setString(7, newchapter.getBookChapterName());
+                                    chapterInsertStmt.setTimestamp(8,
+                                                                   DateUtils.parseDateTime(newchapter.getBookChapterDate()));
+                                    chapterInsertStmt.setTimestamp(9,
+                                                                   DateUtils.parseDateTime(newchapter.getBookChapterDate()));
+                                    chapterInsertStmt.setInt(10, Integer.parseInt(json.getString("bookWordsCount")));
+                                    if (StringUtils.isNotBlank(newchapter.getBookChapterisVip())) {
+                                        chapterInsertStmt.setInt(11, Integer.parseInt(newchapter.getBookChapterisVip()));
                                     } else {
-                                        TYChapterInfo existchapterInfo = existsChapterList.get(i);
-                                        if (StringUtils.isNotBlank(newchapter.getBookChapterDate())) {
-                                            if (DateUtils.parseDate(newchapter.getBookChapterDate()).after(new Date(
-                                                                                                                    existchapterInfo.getUpdateTime().getTime()))) { // 更新时间靠后，需要更新
-                                                // UPDATE CHAPTER_INFO SET CHAPTER_ORDER=?,ROLL_NAME = ?,ROLL
-                                                // =?,CHAPTER_NAME =?,UPDATE_TIME=?, CHAPTER_SIZE =?,IS_FREE=? ,CONTENT
-                                                // = ? WHERE INNER_CHAPTER_ID=?
-                                                chapterUpdateStmt.setInt(1, i + 1);
-                                                chapterUpdateStmt.setString(2, VOLUMENAME);
-                                                chapterUpdateStmt.setString(3, VOLUMEID);
-                                                chapterUpdateStmt.setString(4, newchapter.getBookChapterName());
-                                                chapterUpdateStmt.setTimestamp(5,
-                                                                               DateUtils.parseDateTime(newchapter.getBookChapterDate()));
-                                                chapterUpdateStmt.setInt(6, hongxiuContentInfo.getBookWordsCount());
-                                                if (StringUtils.isNotBlank(newchapter.getBookChapterisVip())) {
-                                                    chapterInsertStmt.setInt(7,
-                                                                             Integer.parseInt(newchapter.getBookChapterisVip()));
-                                                } else {
-                                                    chapterInsertStmt.setInt(7, 0);
-                                                }
-                                                chapterInsertStmt.setString(8, chapterTxt);
-                                                chapterInsertStmt.setInt(9, existchapterInfo.getInnerChapterId());
-                                                chapterUpdateStmt.executeUpdate();
+                                        chapterInsertStmt.setInt(11, 0);
+                                    }
+                                    chapterInsertStmt.setString(12, chapterTxt);
+                                    chapterInsertStmt.setString(13, SOURCE_ID);
+                                    chapterInsertStmt.execute();
+
+                                } else {
+                                    TYChapterInfo existchapterInfo = existsChapterList.get(i);
+                                    if (StringUtils.isNotBlank(newchapter.getBookChapterDate())) {
+                                        if (DateUtils.parseDate(newchapter.getBookChapterDate()).after(new Date(
+                                                                                                                existchapterInfo.getUpdateTime().getTime()))) { // 更新时间靠后，需要更新
+                                            // UPDATE CHAPTER_INFO SET CHAPTER_ORDER=?,ROLL_NAME = ?,ROLL
+                                            // =?,CHAPTER_NAME =?,UPDATE_TIME=?, CHAPTER_SIZE =?,IS_FREE=? ,CONTENT
+                                            // = ? WHERE INNER_CHAPTER_ID=?
+                                            chapterUpdateStmt.setInt(1, i + 1);
+                                            chapterUpdateStmt.setString(2, VOLUMENAME);
+                                            chapterUpdateStmt.setString(3, VOLUMEID);
+                                            chapterUpdateStmt.setString(4, newchapter.getBookChapterName());
+                                            chapterUpdateStmt.setTimestamp(5,DateUtils.parseDateTime(newchapter.getBookChapterDate()));
+                                            chapterUpdateStmt.setInt(6, Integer.parseInt(json.getString("bookWordsCount")));
+                                            if (StringUtils.isNotBlank(newchapter.getBookChapterisVip())) {
+                                                chapterInsertStmt.setInt(7,Integer.parseInt(newchapter.getBookChapterisVip()));
+                                            } else {
+                                                chapterInsertStmt.setInt(7, 0);
                                             }
+                                            chapterInsertStmt.setString(8, chapterTxt);
+                                            chapterInsertStmt.setInt(9, existchapterInfo.getInnerChapterId());
+                                            chapterUpdateStmt.executeUpdate();
                                         }
                                     }
                                 }
-
-                            } else { // 章节有所删除
-
                             }
 
-                        } else {
-                            // 第一次抓取
-                            // "INSERT INTO
-                            // CHAPTER_INFO(OUT_CHAPTER_ID,OUT_BOOK_ID,INNER_BOOK_ID,CHAPTER_ORDER,ROLL_NAME,ROLL,CHAPTER_NAME,CREATE_TIME,UPDATE_TIME,CHAPTER_SIZE,IS_FREE,CONTENT,SOURCE_ID)
-                            // VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
-                            int order = 1;
-                            for (HongxiuChapterInfo chapter : newChapterList) {
-                                chapterInsertStmt.setString(1, chapter.getBookChapterId());
-                                chapterInsertStmt.setString(2, String.valueOf(hongxiuContentInfo.getBookId()));
-                                chapterInsertStmt.setInt(3, innerContentId);
-                                chapterInsertStmt.setInt(4, order++);
-                                chapterInsertStmt.setString(5, VOLUMENAME);
-                                chapterInsertStmt.setString(6, VOLUMEID);
-                                chapterInsertStmt.setString(7, chapter.getBookChapterName());
-                                Timestamp timestamp = null;
-                                try {
-                                    timestamp = DateUtils.parseDateTime(DateUtils.getStringDate());
-                                } catch (Exception e) {
-                                    logger.error("message:" + e.getMessage());
-                                }
-                                chapterInsertStmt.setTimestamp(8, timestamp);
-                                chapterInsertStmt.setTimestamp(9, timestamp);
-                                chapterInsertStmt.setInt(10,
-                                                         service.getChapterInfosCount(String.valueOf(hongxiuContentInfo.getBookId())));
-                                if (StringUtils.isNotBlank(chapter.getBookChapterisVip())) {
-                                    chapterInsertStmt.setInt(11, Integer.parseInt(chapter.getBookChapterisVip())); //我们0免费，1收费 ；红袖那边 1位VIP 0为非vip一致的
-                                } else {
-                                    chapterInsertStmt.setInt(11, 0);
-                                }
-                                chapterInsertStmt.setString(12,
-                                                            service.getChapterInfo(String.valueOf(hongxiuContentInfo.getBookId()),
-                                                                                   chapter.getBookChapterId()).getBookChapterTxt());
-                                chapterInsertStmt.setString(13, SOURCE_ID);
-                                chapterInsertStmt.execute();
+                        } else { // 章节有所删除
 
+                        }
+
+                    } else {
+                        logger.info("hongxiu first collection content info");
+                        // 第一次抓取
+                        // "INSERT INTO
+                        // CHAPTER_INFO(OUT_CHAPTER_ID,OUT_BOOK_ID,INNER_BOOK_ID,CHAPTER_ORDER,ROLL_NAME,ROLL,CHAPTER_NAME,CREATE_TIME,UPDATE_TIME,CHAPTER_SIZE,IS_FREE,CONTENT,SOURCE_ID)
+                        // VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        int order = 1;
+                        for (HongxiuChapterInfo chapter : newChapterList) {
+                            chapterInsertStmt.setString(1, chapter.getBookChapterId());
+                            chapterInsertStmt.setString(2, json.getString("bookId"));
+                            chapterInsertStmt.setInt(3, innerContentId);
+                            chapterInsertStmt.setInt(4, order++);
+                            chapterInsertStmt.setString(5, VOLUMENAME);
+                            chapterInsertStmt.setString(6, VOLUMEID);
+                            chapterInsertStmt.setString(7, chapter.getBookChapterName());
+                            Timestamp timestamp = null;
+                            try {
+                                timestamp = DateUtils.parseDateTime(DateUtils.getStringDate());
+                            } catch (Exception e) {
+                                logger.error("message:" + e.getMessage());
                             }
+                            chapterInsertStmt.setTimestamp(8, timestamp);
+                            chapterInsertStmt.setTimestamp(9, timestamp);
+                            chapterInsertStmt.setInt(10,chapterCount);
+                            if (StringUtils.isNotBlank(chapter.getBookChapterisVip())) {
+                                chapterInsertStmt.setInt(11, Integer.parseInt(chapter.getBookChapterisVip())); // 我们0免费，1收费
+                                                                                                               // ；红袖那边
+                                                                                                               // 1位VIP
+                                                                                                               // 0为非vip一致的
+                            } else {
+                                chapterInsertStmt.setInt(11, 0);
+                            }
+                            chapterInsertStmt.setString(12,
+                                                        service.getChapterInfo(json.getString("bookId"),chapter.getBookChapterId()).getBookChapterTxt());
+                            chapterInsertStmt.setString(13, SOURCE_ID);
+                            chapterInsertStmt.execute();
+
                         }
                     }
                 }
@@ -368,6 +363,36 @@ public class HongxiuWriter extends Writer {
             if (contentQueryStmt != null) {
                 try {
                     contentQueryStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (contentUpdateStmt != null) {
+                try {
+                    contentUpdateStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (contentInsertStmt != null) {
+                try {
+                    contentInsertStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (chapterQueryStmt != null) {
+                try {
+                    chapterQueryStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (chapterInsertStmt != null) {
+                try {
+                    chapterInsertStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (chapterUpdateStmt != null) {
+                try {
+                    chapterUpdateStmt.close();
                 } catch (SQLException ignore) {
                 }
             }
