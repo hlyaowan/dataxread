@@ -60,6 +60,7 @@ public class ZhulangReader extends Reader {
 
                     line.addField(json.toString());
                     sender.sendToWriter(line);
+                    sender.flush();
 
                 }
 
