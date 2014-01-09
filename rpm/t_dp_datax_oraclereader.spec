@@ -29,7 +29,7 @@ cp ${OLDPWD}/../build/plugins/plugins-common-1.0.0.jar %{dataxpath}/plugins/read
 cp -r ${OLDPWD}/../libs/ojdbc14_10.2.0.4.jar %{dataxpath}/plugins/reader/oraclereader
 cp -r ${OLDPWD}/../libs/commons-dbcp-1.4.jar %{dataxpath}/plugins/reader/oraclereader
 cp -r ${OLDPWD}/../libs/commons-pool-1.5.4.jar %{dataxpath}/plugins/reader/oraclereader
-cp -r ${OLDPWD}/../libs/commons-logging-1.1.1.jar %{dataxpath}/plugins/reader/oraclereader
+cp -r ${OLDPWD}/../libs/commons-logging-1.1.3.jar %{dataxpath}/plugins/reader/oraclereader
 
 %files
 %defattr(0755,root,root)

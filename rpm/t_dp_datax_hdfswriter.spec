@@ -27,7 +27,7 @@ cp ${OLDPWD}/../src/com/taobao/datax/plugins/writer/hdfswriter/ParamKey.java %{d
 cp ${OLDPWD}/../build/plugins/hdfswriter-1.0.0.jar %{dataxpath}/plugins/writer/hdfswriter
 cp ${OLDPWD}/../build/plugins/plugins-common-1.0.0.jar %{dataxpath}/plugins/writer/hdfswriter
 cp -r ${OLDPWD}/../libs/hadoop-0.19.2-core.jar %{dataxpath}/plugins/writer/hdfswriter
-cp -r ${OLDPWD}/../libs/commons-logging-1.1.1.jar %{dataxpath}/plugins/writer/hdfswriter
+cp -r ${OLDPWD}/../libs/commons-logging-1.1.3.jar %{dataxpath}/plugins/writer/hdfswriter
 cp -r ${OLDPWD}/../libs/libhadoop.so %{dataxpath}/plugins/writer/hdfswriter
 
 %files

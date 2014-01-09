@@ -43,12 +43,20 @@ cp ${OLDPWD}/../c++/build/libcommon.so %{dataxpath}/common
 
 cp -r ${OLDPWD}/../libs/commons-io-2.0.1.jar %{dataxpath}/libs
 cp -r ${OLDPWD}/../libs/commons-lang-2.4.jar %{dataxpath}/libs
+cp -r ${OLDPWD}/../libs/commons-logging-1.1.3.jar %{dataxpath}/libs
 cp -r ${OLDPWD}/../libs/dom4j-2.0.0-ALPHA-2.jar %{dataxpath}/libs
 cp -r ${OLDPWD}/../libs/jaxen-1.1-beta-6.jar %{dataxpath}/libs
 cp -r ${OLDPWD}/../libs/junit-4.4.jar %{dataxpath}/libs
 cp -r ${OLDPWD}/../libs/log4j-1.2.16.jar %{dataxpath}/libs
 cp -r ${OLDPWD}/../libs/slf4j-api-1.4.3.jar %{dataxpath}/libs
 cp -r ${OLDPWD}/../libs/slf4j-log4j12-1.4.3.jar %{dataxpath}/libs
+cp -r ${OLDPWD}/../libs/httpclient-4.2.3.jar %{dataxpath}/libs
+cp -r ${OLDPWD}/../libs/httpcore-4.2.2.jar %{dataxpath}/libs
+cp -r ${OLDPWD}/../libs/json-lib-2.3-jdk15.jar %{dataxpath}/libs
+cp -r ${OLDPWD}/../libs/ezmorph-1.0.6.jar %{dataxpath}/libs
+cp -r ${OLDPWD}/../libs/commons-beanutils-1.8.3.jar %{dataxpath}/libs
+cp -r ${OLDPWD}/../libs/commons-collections-3.2.1.jar %{dataxpath}/libs
+cp -r ${OLDPWD}/../libs/sunjce_provider.jar %{dataxpath}/libs
 
 %post
 chmod -R 0777 %{dataxpath}/jobs

@@ -28,7 +28,7 @@ cp ${OLDPWD}/../build/plugins/plugins-common-1.0.0.jar %{dataxpath}/plugins/read
 
 cp -r ${OLDPWD}/../libs/hadoop-0.20.jar %{dataxpath}/plugins/reader/hbasereader
 cp -r ${OLDPWD}/../libs/zookeeper-3.3.3.jar %{dataxpath}/plugins/reader/hbasereader
-cp -r ${OLDPWD}/../libs/commons-logging-1.1.1.jar %{dataxpath}/plugins/reader/hbasereader
+cp -r ${OLDPWD}/../libs/commons-logging-1.1.3.jar %{dataxpath}/plugins/reader/hbasereader
 cp -r ${OLDPWD}/../libs/hbase-0.90.2.jar %{dataxpath}/plugins/reader/hbasereader
 
 cp ${OLDPWD}/../src/com/taobao/datax/plugins/reader/hbasereader/ParamKey.java %{dataxpath}/plugins/reader/hbasereader

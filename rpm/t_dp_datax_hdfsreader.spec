@@ -27,7 +27,7 @@ cp ${OLDPWD}/../src/com/taobao/datax/plugins/reader/hdfsreader/ParamKey.java %{d
 cp ${OLDPWD}/../build/plugins/hdfsreader-1.0.0.jar %{dataxpath}/plugins/reader/hdfsreader/
 cp ${OLDPWD}/../build/plugins/plugins-common-1.0.0.jar %{dataxpath}/plugins/reader/hdfsreader
 cp -r ${OLDPWD}/../libs/hadoop-0.19.2-core.jar %{dataxpath}/plugins/reader/hdfsreader
-cp -r ${OLDPWD}/../libs/commons-logging-1.1.1.jar %{dataxpath}/plugins/reader/hdfsreader
+cp -r ${OLDPWD}/../libs/commons-logging-1.1.3.jar %{dataxpath}/plugins/reader/hdfsreader
 cp -r ${OLDPWD}/../libs/libhadoop.so %{dataxpath}/plugins/reader/hdfsreader
 
 %files
