@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import net.sf.json.JSONObject;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -122,14 +124,14 @@ public class GuqiangWriter extends Writer {
             this.encoding = encodingMaps.get(this.encoding);
         }
 
-        // this.username = "root";
-        // this.password = "875154";
-        // this.host = "localhost";
-        // this.port = "3306";
-        // this.dbname = "cp_content";
-        // this.encoding = "utf-8";
-        // this.sourceUniqKey = DBSource.genKey(this.getClass(), host, port,
-        // dbname);
+//         this.username = "root";
+//         this.password = "875154";
+//         this.host = "localhost";
+//         this.port = "3306";
+//         this.dbname = "cp_content";
+//         this.encoding = "utf-8";
+//         this.sourceUniqKey = DBSource.genKey(this.getClass(), host, port,
+//         dbname);
 
         return PluginStatus.SUCCESS.value();
     }
@@ -188,135 +190,139 @@ public class GuqiangWriter extends Writer {
                                                                                                                                                  + "UPDATE_TIME=?, CHAPTER_SIZE =?,"
                                                                                                                                                  + "IS_FREE=? ,CONTENT = ? "
                                                                                                                                                  + " WHERE INNER_CHAPTER_ID=?");
-            if ((line = receiver.getFromReader()) != null) {
+
+            System.out.println("============begin collection guqiang data==========");
+            while ((line = receiver.getFromReader()) != null) {
                 logger.info("guqiang writer starting");
                 if (line.getFieldNum() > 0) {
-                    String contentXml = line.getField(0);
-                    List<BookList> bookLists = service.getGuqiangClientBookList(null, contentXml);
-                    for (BookList book : bookLists) {
-                        logger.info("guqiang writer line : " + book.getId());
-                        GQcontentInfo gqContent = service.getContentInfo(String.valueOf(book.getId()));
-                        contentQueryStmt.setString(1, String.valueOf(book.getId()));
-                        ResultSet contentRs = contentQueryStmt.executeQuery();
-                        TYContentInfo content = bindData(contentRs, TYContentInfo.class);
-                        int innerContentId = 0; // 更新：原有ID，新增：自增长后的ID
-                        if (content != null && content.getInnerBookId() != null) { // 内容记录已存在，判断是否变更
-                            logger.info("update content info");
-                            contentUpdateStmt.setString(1, gqContent.getAuthor());
-                            contentUpdateStmt.setInt(2, WORDVALUE);
-                            contentUpdateStmt.setString(3, gqContent.getDetail());
-                            contentUpdateStmt.setString(4, gqContent.getImageMidPath());
-                            contentUpdateStmt.setTimestamp(5, DateUtils.parseDateNowTime());
-                            // 小说状态（0：连载1：完本）
-                            int flag = 0;
-                            if (gqContent.getBookType() == 0) {
-                                flag = 2;
-                            } else if (gqContent.getBookType() == 1) {
-                                flag = 1;
-                            }
-                            contentUpdateStmt.setInt(6, flag); // 是否连载数据库1完本，2连载
-                            contentUpdateStmt.setInt(7, gqContent.getMaxFree()); // 最大章节
-                            contentUpdateStmt.setInt(8, book.getId());
-                            contentUpdateStmt.executeUpdate();
-                            innerContentId = content.getInnerBookId();
-                        } else {// 内容记录不存在,数据库不存在网文的数据，则插入记录
-                            logger.info("create content info");
-                            // "INSERT INTO
-                            // CONTENT_INFO(OUT_BOOK_ID,CREATE_TIME,BOOK_NAME,AUTHOR_NAME,BOOK_SIZE,BOOK_INTRO,BOOK_COVER,LAST_CHAPTER_UPDATE_TIME,BOOK_FULLFLAG,CHAPTER_TOTAL,SOURCE_ID)VALUES(?,?,?,?,?,?,?,?,?,?,?)
-                            contentInsertStmt.setString(1, String.valueOf(book.getId()));
-                            contentInsertStmt.setTimestamp(2, DateUtils.parseDateNowTime());
-                            contentInsertStmt.setString(3, gqContent.getBookName());
-                            contentInsertStmt.setString(4, gqContent.getAuthor());
-                            contentInsertStmt.setInt(5, WORDVALUE);
-                            contentInsertStmt.setString(6, gqContent.getDetail());
-                            contentInsertStmt.setString(7, gqContent.getImageMidPath());
-                            contentInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
-                            // 小说状态（0：连载1：完本）
-                            int flag = 0;
-                            if (gqContent.getBookType() == 0) {
-                                flag = 2;
-                            } else if (gqContent.getBookType() == 1) {
-                                flag = 1;
-                            }
-                            contentInsertStmt.setInt(9, flag);// //数据库1完本，2连载
-                            contentInsertStmt.setInt(10, gqContent.getMaxFree());
-                            contentInsertStmt.setString(11, SOURCE_ID);
-                            contentInsertStmt.execute();
-                            ResultSet generatedRs = contentInsertStmt.getGeneratedKeys();
-                            if (generatedRs.next()) {
-                                innerContentId = generatedRs.getInt(1);
-                                logger.info("writered one line content,bk_id:" + book.getId() + "  id : "
-                                            + innerContentId);
-                            }
+                    String contentJson = line.getField(0);
+                    logger.info("guqiang writer line : " + contentJson);
+//                    String contentJson = "{\"bookName\":\"畅游\",\"categoryId\":\"1\",\"categoryPid\":\"0\",\"id\":30573}";//line.getField(0);
+                    JSONObject json = JSONObject.fromObject(contentJson);
+                    contentQueryStmt.setString(1, json.getString("id"));
+
+                    GQcontentInfo gqContent = service.getContentInfo(String.valueOf(json.getString("id")));
+
+                    contentQueryStmt.setString(1, String.valueOf(json.getString("id")));
+                    ResultSet contentRs = contentQueryStmt.executeQuery();
+                    TYContentInfo content = bindData(contentRs, TYContentInfo.class);
+                    int innerContentId = 0; // 更新：原有ID，新增：自增长后的ID
+                    if (content != null && content.getInnerBookId() != null) { // 内容记录已存在，判断是否变更
+                        logger.info("update content info");
+                        contentUpdateStmt.setString(1, gqContent.getAuthor());
+                        contentUpdateStmt.setInt(2, WORDVALUE);
+                        contentUpdateStmt.setString(3, gqContent.getDetail());
+                        contentUpdateStmt.setString(4, gqContent.getImageMidPath());
+                        contentUpdateStmt.setTimestamp(5, DateUtils.parseDateNowTime());
+                        // 小说状态（0：连载1：完本）
+                        int flag = 0;
+                        if (gqContent.getBookType() == 0) {
+                            flag = 2;
+                        } else if (gqContent.getBookType() == 1) {
+                            flag = 1;
                         }
-                        chapterQueryStmt.setString(1, String.valueOf(book.getId()));
-                        ResultSet chapterRs = chapterQueryStmt.executeQuery();
-                        List<TYChapterInfo> existsChapterList = bindDataList(chapterRs, TYChapterInfo.class);// 现有数据库书籍章节内容
-                        List<ChapterList> newChapterList = service.getGuqiangChapterList(String.valueOf(book.getId()),
-                                                                                         MAXCHAPTER);// Cp最新章节内容
-                        if (CollectionUtils.isNotEmpty(existsChapterList)) { // 有内容，需判断是否有更新
-                            int existsChapterSize = existsChapterList.size();
-                            int newChapterSize = newChapterList.size();
-                            if (newChapterSize >= existsChapterSize) { // 连载更新
-                                for (int i = 0; i < newChapterSize; i++) {
-                                    ChapterList cpchapter = newChapterList.get(i);
-                                    if (i + 1 > existsChapterSize) { // 新增章节
-                                        chapterInsertStmt.setString(1, String.valueOf(cpchapter.getChapterId()));
-                                        chapterInsertStmt.setString(2, String.valueOf(book.getId()));
-                                        chapterInsertStmt.setInt(3, innerContentId);
-                                        chapterInsertStmt.setInt(4, i + 1);
-                                        chapterInsertStmt.setString(5, VOLUMENAME);
-                                        chapterInsertStmt.setString(6, VOLUMEID);
-                                        chapterInsertStmt.setString(7, cpchapter.getChapterName());
-                                        chapterInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
-                                        chapterInsertStmt.setTimestamp(9, DateUtils.parseDateNowTime());
-                                        chapterInsertStmt.setInt(10, WORDVALUE);
-                                        if (StringUtils.isNotBlank(cpchapter.getIsVip())) {
-                                            chapterInsertStmt.setInt(11, Integer.parseInt(cpchapter.getIsVip()));//0免费，1收费，古羌和我们定义一致
-                                        } else {
-                                            chapterInsertStmt.setInt(11, 0);
-                                        }
-                                        String contentChapter = service.getChapterContent(String.valueOf(book.getId()),
-                                                                                          String.valueOf(cpchapter.getChapterId()));
-                                        chapterInsertStmt.setString(12, contentChapter);
-                                        chapterInsertStmt.setString(13, SOURCE_ID);
-                                        chapterInsertStmt.execute();
+                        contentUpdateStmt.setInt(6, flag); // 是否连载数据库1完本，2连载
+                        contentUpdateStmt.setInt(7, gqContent.getMaxFree()); // 最大章节
+                        contentUpdateStmt.setInt(8, Integer.parseInt(json.getString("id")));
+                        contentUpdateStmt.executeUpdate();
+                        innerContentId = content.getInnerBookId();
+                    } else {// 内容记录不存在,数据库不存在网文的数据，则插入记录
+                        logger.info("create content info");
+                        // "INSERT INTO
+                        // CONTENT_INFO(OUT_BOOK_ID,CREATE_TIME,BOOK_NAME,AUTHOR_NAME,BOOK_SIZE,BOOK_INTRO,BOOK_COVER,LAST_CHAPTER_UPDATE_TIME,BOOK_FULLFLAG,CHAPTER_TOTAL,SOURCE_ID)VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                        contentInsertStmt.setString(1, json.getString("id"));
+                        contentInsertStmt.setTimestamp(2, DateUtils.parseDateNowTime());
+                        contentInsertStmt.setString(3, gqContent.getBookName());
+                        contentInsertStmt.setString(4, gqContent.getAuthor());
+                        contentInsertStmt.setInt(5, WORDVALUE);
+                        contentInsertStmt.setString(6, gqContent.getDetail());
+                        contentInsertStmt.setString(7, gqContent.getImageMidPath());
+                        contentInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
+                        // 小说状态（0：连载1：完本）
+                        int flag = 0;
+                        if (gqContent.getBookType() == 0) {
+                            flag = 2;
+                        } else if (gqContent.getBookType() == 1) {
+                            flag = 1;
+                        }
+                        contentInsertStmt.setInt(9, flag);// //数据库1完本，2连载
+                        contentInsertStmt.setInt(10, gqContent.getMaxFree());
+                        contentInsertStmt.setString(11, SOURCE_ID);
+                        contentInsertStmt.execute();
+                        ResultSet generatedRs = contentInsertStmt.getGeneratedKeys();
+                        if (generatedRs.next()) {
+                            innerContentId = generatedRs.getInt(1);
+                            logger.info("writered one line content,bk_id:" + json.getString("id") + "  id : "
+                                        + innerContentId);
+                        }
+                    }
+                    chapterQueryStmt.setString(1, json.getString("id"));
+                    ResultSet chapterRs = chapterQueryStmt.executeQuery();
+                    List<TYChapterInfo> existsChapterList = bindDataList(chapterRs, TYChapterInfo.class);// 现有数据库书籍章节内容
+                    List<ChapterList> newChapterList = service.getGuqiangChapterList(json.getString("id"), MAXCHAPTER);// Cp最新章节内容
+                    if (CollectionUtils.isNotEmpty(existsChapterList)) { // 有内容，需判断是否有更新
+                        int existsChapterSize = existsChapterList.size();
+                        int newChapterSize = newChapterList.size();
+                        if (newChapterSize >= existsChapterSize) { // 连载更新
+                            for (int i = 0; i < newChapterSize; i++) {
+                                ChapterList cpchapter = newChapterList.get(i);
+                                if (i + 1 > existsChapterSize) { // 新增章节
+                                    chapterInsertStmt.setString(1, String.valueOf(cpchapter.getChapterId()));
+                                    chapterInsertStmt.setString(2, json.getString("id"));
+                                    chapterInsertStmt.setInt(3, innerContentId);
+                                    chapterInsertStmt.setInt(4, i + 1);
+                                    chapterInsertStmt.setString(5, VOLUMENAME);
+                                    chapterInsertStmt.setString(6, VOLUMEID);
+                                    chapterInsertStmt.setString(7, cpchapter.getChapterName());
+                                    chapterInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
+                                    chapterInsertStmt.setTimestamp(9, DateUtils.parseDateNowTime());
+                                    chapterInsertStmt.setInt(10, WORDVALUE);
+                                    if (StringUtils.isNotBlank(cpchapter.getIsVip())) {
+                                        chapterInsertStmt.setInt(11, Integer.parseInt(cpchapter.getIsVip()));// 0免费，1收费，古羌和我们定义一致
                                     } else {
-                                        // 暂无章节时间更新字段
+                                        chapterInsertStmt.setInt(11, 0);
                                     }
+                                    String contentChapter = service.getChapterContent(json.getString("id"),
+                                                                                      String.valueOf(cpchapter.getChapterId()));
+                                    chapterInsertStmt.setString(12, contentChapter);
+                                    chapterInsertStmt.setString(13, SOURCE_ID);
+                                    chapterInsertStmt.execute();
+                                } else {
+                                    // 暂无章节时间更新字段
                                 }
-                            } else {
-                                // 章节有所删除,现在预留还没有章节增减
                             }
                         } else {
-                            // 第一次抓取，表示数据库没有章节内容信息
-                            // "INSERT INTO
-                            // CHAPTER_INFO(OUT_CHAPTER_ID,OUT_BOOK_ID,INNER_BOOK_ID,CHAPTER_ORDER,ROLL_NAME,ROLL,CHAPTER_NAME,CREATE_TIME,UPDATE_TIME,CHAPTER_SIZE,IS_FREE,CONTENT,SOURCE_ID)
-                            // VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
-                            int order = 1;
-                            for (ChapterList chapter : newChapterList) {
-                                chapterInsertStmt.setString(1, String.valueOf(chapter.getChapterId()));
-                                chapterInsertStmt.setString(2, String.valueOf(book.getId()));
-                                chapterInsertStmt.setInt(3, innerContentId);
-                                chapterInsertStmt.setInt(4, order++);
-                                chapterInsertStmt.setString(5, VOLUMENAME);
-                                chapterInsertStmt.setString(6, VOLUMEID); // chapter.get("ch_roll"
-                                chapterInsertStmt.setString(7, chapter.getChapterName());
-                                chapterInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
-                                chapterInsertStmt.setTimestamp(9, DateUtils.parseDateNowTime());
-                                chapterInsertStmt.setInt(10, Integer.parseInt(chapter.getChapterSize()));
-                                if (StringUtils.isNotBlank(chapter.getIsVip())) {
-                                    chapterInsertStmt.setInt(11, Integer.parseInt(chapter.getIsVip()));
-                                } else {
-                                    chapterInsertStmt.setInt(11, 0);
-                                }
-                                String chapterContent = service.getChapterContent(String.valueOf(book.getId()),
-                                                                                  String.valueOf(chapter.getChapterId()));
-                                chapterInsertStmt.setString(12, chapterContent);
-                                chapterInsertStmt.setString(13, SOURCE_ID);
-                                chapterInsertStmt.execute();
-
+                            // 章节有所删除,现在预留还没有章节增减
+                        }
+                    } else {
+                        logger.info("guqiang first collection content info");
+                        // 第一次抓取，表示数据库没有章节内容信息
+                        // "INSERT INTO
+                        // CHAPTER_INFO(OUT_CHAPTER_ID,OUT_BOOK_ID,INNER_BOOK_ID,CHAPTER_ORDER,ROLL_NAME,ROLL,CHAPTER_NAME,CREATE_TIME,UPDATE_TIME,CHAPTER_SIZE,IS_FREE,CONTENT,SOURCE_ID)
+                        // VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        int order = 1;
+                        for (ChapterList chapter : newChapterList) {
+                            chapterInsertStmt.setString(1, String.valueOf(chapter.getChapterId()));
+                            chapterInsertStmt.setString(2, json.getString("id"));
+                            chapterInsertStmt.setInt(3, innerContentId);
+                            chapterInsertStmt.setInt(4, order++);
+                            chapterInsertStmt.setString(5, VOLUMENAME);
+                            chapterInsertStmt.setString(6, VOLUMEID); // chapter.get("ch_roll"
+                            chapterInsertStmt.setString(7, chapter.getChapterName());
+                            chapterInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
+                            chapterInsertStmt.setTimestamp(9, DateUtils.parseDateNowTime());
+                            chapterInsertStmt.setInt(10, Integer.parseInt(chapter.getChapterSize()));
+                            if (StringUtils.isNotBlank(chapter.getIsVip())) {
+                                chapterInsertStmt.setInt(11, Integer.parseInt(chapter.getIsVip()));
+                            } else {
+                                chapterInsertStmt.setInt(11, 0);
                             }
+                            String chapterContent = service.getChapterContent(json.getString("id"),
+                                                                              String.valueOf(chapter.getChapterId()));
+                            chapterInsertStmt.setString(12, chapterContent);
+                            chapterInsertStmt.setString(13, SOURCE_ID);
+                            chapterInsertStmt.execute();
+
                         }
                     }
                 }
@@ -324,23 +330,53 @@ public class GuqiangWriter extends Writer {
         } catch (Exception e) {
             e.printStackTrace();
 
-        } finally {
-            if (contentQueryStmt != null) {
-                try {
-                    contentQueryStmt.close();
-                } catch (SQLException ignore) {
+            } finally {
+                if (contentQueryStmt != null) {
+                    try {
+                        contentQueryStmt.close();
+                    } catch (SQLException ignore) {
+                    }
                 }
-            }
-            if (this.connection != null) {
-                try {
-                    this.connection.close();
-                } catch (SQLException ignore) {
+                if (contentUpdateStmt != null) {
+                    try {
+                        contentUpdateStmt.close();
+                    } catch (SQLException ignore) {
+                    }
                 }
-                this.connection = null;
+                if (contentInsertStmt != null) {
+                    try {
+                        contentInsertStmt.close();
+                    } catch (SQLException ignore) {
+                    }
+                }
+                if (chapterQueryStmt != null) {
+                    try {
+                        chapterQueryStmt.close();
+                    } catch (SQLException ignore) {
+                    }
+                }
+                if (chapterInsertStmt != null) {
+                    try {
+                        chapterInsertStmt.close();
+                    } catch (SQLException ignore) {
+                    }
+                }
+                if (chapterUpdateStmt != null) {
+                    try {
+                        chapterUpdateStmt.close();
+                    } catch (SQLException ignore) {
+                    }
+                }
+                if (this.connection != null) {
+                    try {
+                        this.connection.close();
+                    } catch (SQLException ignore) {
+                    }
+                    this.connection = null;
+                }
+    
             }
-
-        }
-
+        logger.info("=====================complete=======================");
         return 0;
     }
 

@@ -20,11 +20,12 @@ public class GuqiangContentService {
     private static GuqiangHttpClient client    = new GuqiangHttpClient();
     private static String            CATALOGID = "";
     private static String            PAGESIZE  = "";
+    private static String            PAGE  = "";
     private static Logger            logger    = Logger.getLogger(GuqiangContentService.class);
 
     @SuppressWarnings("unchecked")
     public List<BookList> getGuqiangClientBookList(Integer page) {
-        String xmlContent = client.getGuqiangClientBookList(CATALOGID, PAGESIZE, page);
+        String xmlContent = client.getGuqiangClientBookList(CATALOGID, PAGESIZE, PAGE);
         List<BookList> bookLists = null;
         try {
             Document document = string2Doc(xmlContent);
@@ -54,7 +55,6 @@ public class GuqiangContentService {
     
     @SuppressWarnings("unchecked")
     public List<BookList> getGuqiangClientBookList(Integer page,String xmlContent) {
-//        String xmlContent = client.getGuqiangClientBookList(CATALOGID, PAGESIZE, page);
         List<BookList> bookLists = null;
         try {
             Document document = string2Doc(xmlContent);
