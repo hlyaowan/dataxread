@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+
+import net.sf.json.JSONObject;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -172,7 +175,7 @@ public class NetwayWriter extends Writer {
             chapterQueryStmt = ((org.apache.commons.dbcp.DelegatingConnection) this.connection).getInnermostDelegate().prepareStatement("SELECT "
                                                                                                                                                 + "OUT_BOOK_ID AS outBookId, OUT_CHAPTER_ID AS outChapterId,"
                                                                                                                                                 + "INNER_CHAPTER_ID AS innerChapterId,INNER_BOOK_ID AS innerBookId,"
-                                                                                                                                                + "CHAPTER_ ORDER AS chapterOrder,ROLL_NAME AS rollName,ROLL AS roll,CHAPTER_NAME AS chapterName,"
+                                                                                                                                                + "CHAPTER_ORDER AS chapterOrder,ROLL_NAME AS rollName,ROLL AS roll,CHAPTER_NAME AS chapterName,"
                                                                                                                                                 + "CREATE_TIME AS createTime,UPDATE_TIME AS updateTime,CHAPTER_SIZE AS chapterSize,"
                                                                                                                                                 + "IS_FREE AS isFree,CONTENT AS content  FROM CHAPTER_INFO WHERE OUT_BOOK_ID =? AND SOURCE_ID ='"
                                                                                                                                                 + SOURCE_ID
@@ -187,133 +190,146 @@ public class NetwayWriter extends Writer {
                                                                                                                                                  + "UPDATE_TIME=?, CHAPTER_SIZE =?,"
                                                                                                                                                  + "IS_FREE=? ,CONTENT = ? "
                                                                                                                                                  + " WHERE INNER_CHAPTER_ID=?");
-            if ((line = receiver.getFromReader()) != null) {
-                logger.info("hongxiu writer starting");
+            while ((line = receiver.getFromReader()) != null) {
+                logger.info("netway writer starting");
                 if (line.getFieldNum() > 0) {
-                    String contentXml = line.getField(0);
-                    List<CPBookEntity> contentInfos = service.getShuChengList(contentXml);
-                    for (CPBookEntity bookEntity : contentInfos) {
-                        logger.info("hongxiu writer line : " + bookEntity.getBookId());
-                        CPBookContent netwayContent = service.getBookContent(bookEntity.getBookId());
-                        contentQueryStmt.setString(1, String.valueOf(bookEntity.getBookId()));
-                        ResultSet contentRs = contentQueryStmt.executeQuery();
-                        TYContentInfo content = bindData(contentRs, TYContentInfo.class);
-                        int innerContentId = 0; // 更新：原有ID，新增：自增长后的ID
-                        if (content != null && content.getInnerBookId() != null) { // 内容记录已存在，判断是否变更
-                            logger.info("update content info");
-                            contentUpdateStmt.setString(1, netwayContent.getAuthorName());
-                            contentUpdateStmt.setInt(2, WORDVALUE);
-                            contentUpdateStmt.setString(3, netwayContent.getDetail());
-                            contentUpdateStmt.setString(4, netwayContent.getImgPath());
-                            contentUpdateStmt.setTimestamp(5, DateUtils.parseDateNowTime());
-                          //接口小说完结状态 0：连载中 1：完结
-                            int flag =0;
-                            if(netwayContent.getFinishflag()==0){
-                                flag =2;
-                            }else  if(netwayContent.getFinishflag()==1){
-                                flag =1;
+                    String contentJson =line.getField(0);
+                    logger.info("netway writer line : " + contentJson);
+                    // {"bookId":"54659","finishflag":"1","maxChapter":"191"}
+                    JSONObject json = JSONObject.fromObject(contentJson);
+                    contentQueryStmt.setString(1, json.getString("bookId"));
+                    CPBookContent netwayContent = service.getBookContent(json.getString("bookId"));
+                    if (netwayContent != null) {
+                        if (netwayContent.getMaxChapter() > 0) {
+                            ResultSet contentRs = contentQueryStmt.executeQuery();
+                            TYContentInfo content = bindData(contentRs, TYContentInfo.class);
+                            int innerContentId = 0; // 更新：原有ID，新增：自增长后的ID
+                            if (content != null && content.getInnerBookId() != null) { // 内容记录已存在，判断是否变更
+                                logger.info("update content info");
+                                contentUpdateStmt.setString(1, netwayContent.getAuthorName());
+                                contentUpdateStmt.setInt(2, WORDVALUE);
+                                contentUpdateStmt.setString(3, netwayContent.getDetail());
+                                contentUpdateStmt.setString(4, netwayContent.getImgPath());
+                                contentUpdateStmt.setTimestamp(5, DateUtils.parseDateNowTime());
+                                // 接口小说完结状态 0：连载中 1：完结
+                                int flag = 0;
+                                if (netwayContent.getFinishflag() == 0) {
+                                    flag = 2;
+                                } else if (netwayContent.getFinishflag() == 1) {
+                                    flag = 1;
+                                }
+                                contentUpdateStmt.setInt(6, flag);
+                                contentUpdateStmt.setInt(7, netwayContent.getMaxChapter());
+                                contentUpdateStmt.setInt(8, Integer.parseInt(json.getString("bookId")));
+                                contentUpdateStmt.executeUpdate();
+                                innerContentId = content.getInnerBookId();
+                            } else {// 内容记录不存在,数据库不存在网文的数据，则插入记录
+                                logger.info("create content info");
+                                // "INSERT INTO
+                                // CONTENT_INFO(OUT_BOOK_ID,CREATE_TIME,BOOK_NAME,AUTHOR_NAME,BOOK_SIZE,BOOK_INTRO,BOOK_COVER,LAST_CHAPTER_UPDATE_TIME,BOOK_FULLFLAG,CHAPTER_TOTAL,SOURCE_ID)VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                                contentInsertStmt.setString(1, json.getString("bookId"));
+                                contentInsertStmt.setTimestamp(2, DateUtils.parseDateNowTime());
+                                contentInsertStmt.setString(3, netwayContent.getBookName());
+                                contentInsertStmt.setString(4, netwayContent.getAuthorName());
+                                contentInsertStmt.setInt(5, WORDVALUE);
+                                contentInsertStmt.setString(6, netwayContent.getDetail());
+                                contentInsertStmt.setString(7, netwayContent.getImgPath());
+                                contentInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
+                                // 接口小说完结状态 0：连载中 1：完结
+                                int flag = 0;
+                                if (netwayContent.getFinishflag() == 0) {
+                                    flag = 2;
+                                } else if (netwayContent.getFinishflag() == 1) {
+                                    flag = 1;
+                                }
+                                contentInsertStmt.setInt(9, flag); // 数据库1完本，2连载
+                                contentInsertStmt.setInt(10, netwayContent.getMaxChapter());
+                                contentInsertStmt.setString(11, SOURCE_ID);
+                                contentInsertStmt.execute();
+                                ResultSet generatedRs = contentInsertStmt.getGeneratedKeys();
+                                if (generatedRs.next()) {
+                                    innerContentId = generatedRs.getInt(1);
+                                    logger.info("writered one line content,bk_id:" + json.getString("bookId")
+                                                + "  id : " + innerContentId);
+                                }
                             }
-                            contentUpdateStmt.setInt(6, flag);
-                            contentUpdateStmt.setInt(7, netwayContent.getMaxChapter());
-                            contentUpdateStmt.setInt(8, Integer.parseInt(bookEntity.getBookId()));
-                            contentUpdateStmt.executeUpdate();
-                            innerContentId = content.getInnerBookId();
-                        } else {// 内容记录不存在,数据库不存在网文的数据，则插入记录
-                            logger.info("create content info");
-                            // "INSERT INTO
-                            // CONTENT_INFO(OUT_BOOK_ID,CREATE_TIME,BOOK_NAME,AUTHOR_NAME,BOOK_SIZE,BOOK_INTRO,BOOK_COVER,LAST_CHAPTER_UPDATE_TIME,BOOK_FULLFLAG,CHAPTER_TOTAL,SOURCE_ID)VALUES(?,?,?,?,?,?,?,?,?,?,?)
-                            contentInsertStmt.setString(1, String.valueOf(bookEntity.getBookId()));
-                            contentInsertStmt.setTimestamp(2, DateUtils.parseDateNowTime());
-                            contentInsertStmt.setString(3, netwayContent.getBookName());
-                            contentInsertStmt.setString(4, netwayContent.getAuthorName());
-                            contentInsertStmt.setInt(5, WORDVALUE);
-                            contentInsertStmt.setString(6, netwayContent.getDetail());
-                            contentInsertStmt.setString(7, netwayContent.getImgPath());
-                            contentInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
-                            //接口小说完结状态 0：连载中 1：完结
-                            int flag =0;
-                            if(netwayContent.getFinishflag()==0){
-                                flag =2;
-                            }else  if(netwayContent.getFinishflag()==1){
-                                flag =1;
-                            }
-                            contentInsertStmt.setInt(9, flag); //数据库1完本，2连载
-                            contentInsertStmt.setInt(10, netwayContent.getMaxChapter());
-                            contentInsertStmt.setString(11, SOURCE_ID);
-                            contentInsertStmt.execute();
-                            ResultSet generatedRs = contentInsertStmt.getGeneratedKeys();
-                            if (generatedRs.next()) {
-                                innerContentId = generatedRs.getInt(1);
-                                logger.info("writered one line content,bk_id:" + bookEntity.getBookId() + "  id : "
-                                            + innerContentId);
-                            }
-                        }
-                        chapterQueryStmt.setString(1, String.valueOf(bookEntity.getBookId()));
-                        ResultSet chapterRs = chapterQueryStmt.executeQuery();
-                        List<TYChapterInfo> existsChapterList = bindDataList(chapterRs, TYChapterInfo.class);// 现有数据库书籍章节内容
-                        List<CPChapterInfo> newChapterList = service.getChapterInfoList(String.valueOf(bookEntity.getBookId()));// Cp最新章节内容
-                        if (CollectionUtils.isNotEmpty(existsChapterList)) { // 有内容，需判断是否有更新
-                            int existsChapterSize = existsChapterList.size();
-                            int newChapterSize = newChapterList.size();
-                            if (newChapterSize >= existsChapterSize) { // 连载更新
-                                for (int i = 0; i < newChapterSize; i++) {
-                                    CPChapterInfo cpchapter = newChapterList.get(i);
-                                    if (i + 1 > existsChapterSize) { // 新增章节
-                                        chapterInsertStmt.setString(1, String.valueOf(cpchapter.getChapterId()));
-                                        chapterInsertStmt.setString(2, String.valueOf(bookEntity.getBookId()));
-                                        chapterInsertStmt.setInt(3, innerContentId);
-                                        chapterInsertStmt.setInt(4, i + 1);
-                                        chapterInsertStmt.setString(5, VOLUMENAME);
-                                        chapterInsertStmt.setString(6, VOLUMEID);
-                                        chapterInsertStmt.setString(7, cpchapter.getChapterName());
-                                        chapterInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
-                                        chapterInsertStmt.setTimestamp(9, DateUtils.parseDateNowTime());
-                                        chapterInsertStmt.setInt(10, WORDVALUE);
-                                        if (StringUtils.isNotBlank(cpchapter.getIsVip())) {
-                                            chapterInsertStmt.setInt(11, Integer.parseInt(cpchapter.getIsVip()));
+                            chapterQueryStmt.setString(1, json.getString("bookId"));
+                            ResultSet chapterRs = chapterQueryStmt.executeQuery();
+                            List<TYChapterInfo> existsChapterList = bindDataList(chapterRs, TYChapterInfo.class);// 现有数据库书籍章节内容
+                            List<CPChapterInfo> newChapterList = service.getChapterInfoList(json.getString("bookId"));// Cp最新章节内容
+                            if (CollectionUtils.isNotEmpty(existsChapterList)) { // 有内容，需判断是否有更新
+                                int existsChapterSize = existsChapterList.size();
+                                int newChapterSize = newChapterList.size();
+                                if (newChapterSize >= existsChapterSize) { // 连载更新
+                                    for (int i = 0; i < newChapterSize; i++) {
+                                        CPChapterInfo cpchapter = newChapterList.get(i);
+                                        if (i + 1 > existsChapterSize) { // 新增章节
+                                            chapterInsertStmt.setString(1, String.valueOf(cpchapter.getChapterId()));
+                                            chapterInsertStmt.setString(2, json.getString("bookId"));
+                                            chapterInsertStmt.setInt(3, innerContentId);
+                                            chapterInsertStmt.setInt(4, i + 1);
+                                            chapterInsertStmt.setString(5, VOLUMENAME);
+                                            chapterInsertStmt.setString(6, VOLUMEID);
+                                            chapterInsertStmt.setString(7, StringUtils.substring(cpchapter.getChapterName(),0,40));
+                                            chapterInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
+                                            chapterInsertStmt.setTimestamp(9, DateUtils.parseDateNowTime());
+                                            chapterInsertStmt.setInt(10, WORDVALUE);
+                                            if (StringUtils.isNotBlank(cpchapter.getIsVip())) {
+                                                chapterInsertStmt.setInt(11, Integer.parseInt(cpchapter.getIsVip()));
+                                            } else {
+                                                chapterInsertStmt.setInt(11, 0);
+                                            }
+                                            CPChapterInfo chapterInfo = service.getChapterInfo(json.getString("bookId"),
+                                                                                               String.valueOf(cpchapter.getChapterId()));
+                                            if (chapterInfo == null) {
+                                                chapterInsertStmt.setString(12, "");
+                                            } else {
+                                                chapterInsertStmt.setString(12, chapterInfo.getChapterContent());
+                                            }
+
+                                            chapterInsertStmt.setString(13, SOURCE_ID);
+                                            chapterInsertStmt.execute();
                                         } else {
-                                            chapterInsertStmt.setInt(11, 0);
+                                            // 暂无章节时间更新字段
                                         }
-                                        CPChapterInfo chapterInfo = service.getChapterInfo(bookEntity.getBookId(),
-                                                                                           String.valueOf(cpchapter.getChapterId()));
-                                        chapterInsertStmt.setString(12, chapterInfo.getChapterContent());
-                                        chapterInsertStmt.setString(13, SOURCE_ID);
-                                        chapterInsertStmt.execute();
-                                    } else {
-                                        // 暂无章节时间更新字段
                                     }
+                                } else {
+                                    // 章节有所删除,现在预留还没有章节增减
                                 }
                             } else {
-                                // 章节有所删除,现在预留还没有章节增减
-                            }
-                        } else {
-                            // 第一次抓取，表示数据库没有章节内容信息
-                            // "INSERT INTO
-                            // CHAPTER_INFO(OUT_CHAPTER_ID,OUT_BOOK_ID,INNER_BOOK_ID,CHAPTER_ORDER,ROLL_NAME,ROLL,CHAPTER_NAME,CREATE_TIME,UPDATE_TIME,CHAPTER_SIZE,IS_FREE,CONTENT,SOURCE_ID)
-                            // VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
-                            int order = 1;
-                            for (CPChapterInfo chapter : newChapterList) {
-                                chapterInsertStmt.setString(1, String.valueOf(chapter.getChapterId()));
-                                chapterInsertStmt.setString(2, String.valueOf(bookEntity.getBookId()));
-                                chapterInsertStmt.setInt(3, innerContentId);
-                                chapterInsertStmt.setInt(4, order++);
-                                chapterInsertStmt.setString(5, VOLUMENAME);
-                                chapterInsertStmt.setString(6, VOLUMEID); // chapter.get("ch_roll"
-                                chapterInsertStmt.setString(7, chapter.getChapterName());
-                                chapterInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
-                                chapterInsertStmt.setTimestamp(9, DateUtils.parseDateNowTime());
-                                chapterInsertStmt.setInt(10, chapter.getChapterNum());
-                                if (StringUtils.isNotBlank(chapter.getIsVip())) {
-                                    chapterInsertStmt.setInt(11, Integer.parseInt(chapter.getIsVip()));//0免费，1收费 ，网文（0：免费，1：收费）和我们一致无须转化
-                                } else {
-                                    chapterInsertStmt.setInt(11, 0);
-                                }
-                                CPChapterInfo chapterInfo = service.getChapterInfo(bookEntity.getBookId(),
-                                                                                   String.valueOf(chapter.getChapterNum()));
-                                chapterInsertStmt.setString(12, chapterInfo.getChapterContent());
-                                chapterInsertStmt.setString(13, SOURCE_ID);
-                                chapterInsertStmt.execute();
+                                // 第一次抓取，表示数据库没有章节内容信息
+                                // "INSERT INTO
+                                // CHAPTER_INFO(OUT_CHAPTER_ID,OUT_BOOK_ID,INNER_BOOK_ID,CHAPTER_ORDER,ROLL_NAME,ROLL,CHAPTER_NAME,CREATE_TIME,UPDATE_TIME,CHAPTER_SIZE,IS_FREE,CONTENT,SOURCE_ID)
+                                // VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+                                int order = 1;
+                                for (CPChapterInfo chapter : newChapterList) {
+                                    chapterInsertStmt.setString(1, String.valueOf(chapter.getChapterId()));
+                                    chapterInsertStmt.setString(2, json.getString("bookId"));
+                                    chapterInsertStmt.setInt(3, innerContentId);
+                                    chapterInsertStmt.setInt(4, order++);
+                                    chapterInsertStmt.setString(5, VOLUMENAME);
+                                    chapterInsertStmt.setString(6, VOLUMEID); // chapter.get("ch_roll"
+                                    chapterInsertStmt.setString(7, StringUtils.substring(chapter.getChapterName(),0,40));
+                                    chapterInsertStmt.setTimestamp(8, DateUtils.parseDateNowTime());
+                                    chapterInsertStmt.setTimestamp(9, DateUtils.parseDateNowTime());
+                                    chapterInsertStmt.setInt(10, chapter.getChapterNum());
+                                    if (StringUtils.isNotBlank(chapter.getIsVip())) {
+                                        chapterInsertStmt.setInt(11, Integer.parseInt(chapter.getIsVip()));// 0免费，1收费
+                                                                                                           // ，网文（0：免费，1：收费）和我们一致无须转化
+                                    } else {
+                                        chapterInsertStmt.setInt(11, 0);
+                                    }
+                                    CPChapterInfo chapterInfo = service.getChapterInfo(json.getString("bookId"),
+                                                                                       String.valueOf(chapter.getChapterNum()));
+                                    if (chapterInfo == null) {
+                                        chapterInsertStmt.setString(12, "");
+                                    } else {
+                                        chapterInsertStmt.setString(12, chapterInfo.getChapterContent());
+                                    }
+                                    chapterInsertStmt.setString(13, SOURCE_ID);
+                                    chapterInsertStmt.execute();
 
+                                }
                             }
                         }
                     }
@@ -326,6 +342,36 @@ public class NetwayWriter extends Writer {
             if (contentQueryStmt != null) {
                 try {
                     contentQueryStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (contentUpdateStmt != null) {
+                try {
+                    contentUpdateStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (contentInsertStmt != null) {
+                try {
+                    contentInsertStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (chapterQueryStmt != null) {
+                try {
+                    chapterQueryStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (chapterInsertStmt != null) {
+                try {
+                    chapterInsertStmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+            if (chapterUpdateStmt != null) {
+                try {
+                    chapterUpdateStmt.close();
                 } catch (SQLException ignore) {
                 }
             }
@@ -442,9 +488,11 @@ public class NetwayWriter extends Writer {
     }
 
     public static void main(String[] args) {
-        NetwayWriter writer = new NetwayWriter();
-        writer.init();
-        writer.prepare(null);
-        writer.startWrite(null);
+//        NetwayWriter writer = new NetwayWriter();
+//        writer.init();
+//        writer.prepare(null);
+//        writer.startWrite(null);
+        CountDownLatch countDownLatch =new CountDownLatch(5);
+        countDownLatch.countDown();
     }
 }

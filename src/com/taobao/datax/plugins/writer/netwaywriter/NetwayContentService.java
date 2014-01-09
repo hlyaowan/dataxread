@@ -3,6 +3,7 @@ package com.taobao.datax.plugins.writer.netwaywriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -117,6 +118,7 @@ public class NetwayContentService {
         }
         catch (Exception e) {
             logger.error("xml parse exception:" + e.getMessage());
+            return Collections.EMPTY_LIST;
         }
         logger.info("list:"+list.size());
         return list;
@@ -164,6 +166,7 @@ public class NetwayContentService {
         }
         catch (Exception e) {
             logger.error("getcontentinfo xml:"+e.getMessage());
+            return null;
         }
         return content;
     }
@@ -195,6 +198,7 @@ public class NetwayContentService {
         }
         catch (Exception e) {
             logger.error("chapterInfo xml:"+e.getMessage());
+            return null;
         }
         return chapterInfo;
     }
